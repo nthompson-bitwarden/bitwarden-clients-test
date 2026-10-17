@@ -17,9 +17,14 @@ public abstract class BaseTest : e2e.BaseTest
         // Electron writes its actual dynamic DevTools port here; no fixed port can collide.
         var electron = Path.Combine(RepositoryRoot, "node_modules", "electron", "dist",
             OperatingSystem.IsMacOS() ? "Electron.app/Contents/MacOS/Electron" : "electron");
-        application = ManagedProcess.Start(RepositoryRoot, Path.Combine(profile, "electron.log"), electron,
-            [Path.Combine(RepositoryRoot, "apps", "desktop", "build"), "--remote-debugging-port=0",
-                $"--user-data-dir={profile}"],
+        List<string> arguments = [Path.Combine(RepositoryRoot, "apps", "desktop", "build"), "--remote-debugging-port=0",
+            $"--user-data-dir={profile}"];
+        if (SetupFixture.Settings.Headless)
+        {
+            arguments.InsertRange(0, ["--auto-servernum", "--server-args=-screen 0 1280x720x24", electron]);
+            electron = "xvfb-run";
+        }
+        application = ManagedProcess.Start(RepositoryRoot, Path.Combine(profile, "electron.log"), electron, arguments,
             new Dictionary<string, string> { ["BITWARDEN_APPDATA_DIR"] = profile,
                 ["ELECTRON_IS_DEV"] = "0", ["ELECTRON_NO_UPDATER"] = "1" });
         var deadline = DateTime.UtcNow.AddMinutes(2);
