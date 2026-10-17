@@ -18,7 +18,11 @@ public sealed class TestRuntimeTests
         File.WriteAllText(Path.Combine(root, "manifest.json"), JsonSerializer.Serialize(new
         {
             serverUrl = "http://localhost:18090",
-            accounts = new { Browser = new { email = "browser@example.com", password = "test-password" } },
+            accounts = new
+            {
+                Browser = new { email = "browser@example.com", password = "test-password" },
+                Web = new { email = "web@example.com", password = "test-password" },
+            },
         }));
         File.WriteAllText(Path.Combine(root, "e2e/Server/server.sh"), """
             set -eu
@@ -36,9 +40,49 @@ public sealed class TestRuntimeTests
     public void DeleteRepository() => Directory.Delete(root, recursive: true);
 
     [Test]
+    public async Task WebOnlyReadsExistingManifestWithoutDependenciesOrStartup()
+    {
+        File.Copy(Path.Combine(root, "manifest.json"), Path.Combine(root, "e2e/Server/.state/test-environment.json"));
+        Directory.Delete(Path.Combine(root, "node_modules"));
+        var runtime = new TestRuntime(root);
+
+        var environment = await runtime.PrepareAsync(ClientKind.Web);
+
+        Assert.That(environment.Accounts["Web"].Email, Is.EqualTo("web@example.com"));
+        Assert.That(File.Exists(Path.Combine(root, "server-calls")), Is.False);
+        Assert.That(File.Exists(Path.Combine(root, "build-calls")), Is.False);
+        Assert.That(Directory.Exists(runtime.Logs), Is.False);
+    }
+
+    [Test]
+    public void WebRequiresManuallySeededEnvironment()
+    {
+        var runtime = new TestRuntime(root);
+
+        var error = Assert.ThrowsAsync<InvalidOperationException>(() => runtime.PrepareAsync(ClientKind.Web));
+
+        Assert.That(error!.Message, Does.Contain("./e2e/Server/server.sh up"));
+        Assert.That(File.Exists(Path.Combine(root, "server-calls")), Is.False);
+    }
+
+    [TestCase(ClientKind.Browser)]
+    [TestCase(ClientKind.Desktop)]
+    public async Task WebPreparationDoesNotBypassManagedBackendVerification(ClientKind client)
+    {
+        File.Copy(Path.Combine(root, "manifest.json"), Path.Combine(root, "e2e/Server/.state/test-environment.json"));
+        var runtime = new TestRuntime(root);
+
+        await runtime.PrepareAsync(ClientKind.Web);
+        await runtime.PrepareAsync(client);
+
+        Assert.That(File.ReadAllLines(Path.Combine(root, "server-calls")), Is.EqualTo(new[] { "verify", "up" }));
+        Assert.That(File.ReadAllLines(Path.Combine(root, "build-calls")), Is.EqualTo(new[] { client.ToString() }));
+    }
+
+    [Test]
     public async Task ConcurrentFixturesStartServerAndBuildEachClientOnce()
     {
-        await using var runtime = new TestRuntime(root);
+        var runtime = new TestRuntime(root);
         await Task.WhenAll(runtime.PrepareAsync(ClientKind.Browser), runtime.PrepareAsync(ClientKind.Desktop),
             runtime.PrepareAsync(ClientKind.Browser));
         Assert.That(File.ReadAllLines(Path.Combine(root, "server-calls")), Is.EqualTo(new[] { "up" }));
@@ -46,11 +90,27 @@ public sealed class TestRuntimeTests
     }
 
     [Test]
+    public async Task ExtensionBuildUsesSelectedBrowserAndRebuildsWhenTargetChanges()
+    {
+        //Arrange
+        File.WriteAllText(Path.Combine(root, "e2e/Browser/build.sh"), "echo \"$1\" >> build-calls\n");
+        var runtime = new TestRuntime(root);
+
+        //Act
+        await runtime.PrepareAsync(ClientKind.Browser, "firefox");
+        await runtime.PrepareAsync(ClientKind.Browser, "firefox");
+        await runtime.PrepareAsync(ClientKind.Browser, "edge");
+
+        //Assert
+        Assert.That(File.ReadAllLines(Path.Combine(root, "build-calls")), Is.EqualTo(new[] { "firefox", "edge" }));
+    }
+
+    [Test]
     public async Task HealthySeededServerIsReused()
     {
         File.Copy(Path.Combine(root, "manifest.json"), Path.Combine(root, "e2e/Server/.state/test-environment.json"));
         File.WriteAllText(Path.Combine(root, "ready"), "");
-        await using var runtime = new TestRuntime(root);
+        var runtime = new TestRuntime(root);
         var environment = await runtime.PrepareAsync(ClientKind.Browser);
         Assert.That(File.ReadAllLines(Path.Combine(root, "server-calls")), Is.EqualTo(new[] { "verify" }));
         Assert.That(environment.Accounts["Browser"].Email, Is.EqualTo("browser@example.com"));
@@ -60,7 +120,7 @@ public sealed class TestRuntimeTests
     public async Task UnhealthyServerIsStartedBeforeBuildingClient()
     {
         File.Copy(Path.Combine(root, "manifest.json"), Path.Combine(root, "e2e/Server/.state/test-environment.json"));
-        await using var runtime = new TestRuntime(root);
+        var runtime = new TestRuntime(root);
         await runtime.PrepareAsync(ClientKind.Desktop);
         Assert.That(File.ReadAllLines(Path.Combine(root, "server-calls")), Is.EqualTo(new[] { "verify", "up" }));
     }
@@ -70,7 +130,7 @@ public sealed class TestRuntimeTests
     {
         var script = Path.Combine(root, "e2e/Browser/build.sh");
         File.WriteAllText(script, "echo compiler-failed >&2; exit 7\n");
-        await using var runtime = new TestRuntime(root);
+        var runtime = new TestRuntime(root);
         Assert.ThrowsAsync<InvalidOperationException>(() => runtime.PrepareAsync(ClientKind.Browser));
         Assert.That(File.ReadAllText(Path.Combine(runtime.Logs, "browser-build.log")), Does.Contain("compiler-failed"));
         File.WriteAllText(script, "echo Browser >> build-calls\n");

@@ -82,12 +82,8 @@
     "dramaturge": {
       "url": "https://github.com/webdriverbidi-net/dramaturge",
       "revision": "b95fcbbd6694873f3ca848ef1437e08eba2607cd",
-      "paths": [
-        "skills"
-      ],
-      "excluded_paths": [
-        "skills/.claude-plugin/plugin.json"
-      ]
+      "paths": ["skills"],
+      "excluded_paths": ["skills/.claude-plugin/plugin.json"]
     }
   },
   "files": [
@@ -369,7 +365,7 @@
       "source_sha256": "8252485907a15e13d088f9049eda1d3a2cd0001c9d72ab43c81530fd1ecc820c",
       "destination": "skills/bitwarden-software-engineer/SKILL.md",
       "kind": "role-as-skill",
-      "destination_sha256": "6453f0a507265857984ec6236121bc71f9f2197cb096e5cd85bf46c0c5ce8667"
+      "destination_sha256": "117c6d667bd983536e406f115af50d6dd69970d98a4767ccc812677abb3100a1"
     },
     {
       "repository": "bitwarden",
@@ -513,7 +509,7 @@
       "source_sha256": "bf63c4b000b95c7dc7564f45d6d49d797c3dc9661cd64e81ed763069873c76ff",
       "destination": "skills/dramaturge/SKILL.md",
       "kind": "skill",
-      "destination_sha256": "a19ff0144a6149912e01a80bdd39f5454d99096d9204952f30e021c2aa4dfe8b"
+      "destination_sha256": "e21c539fe90a8823a1e66cb18ea44fec6af1832b2736d7dea89a1e1a5cff18c3"
     },
     {
       "repository": "dramaturge",

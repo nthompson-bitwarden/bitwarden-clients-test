@@ -26,6 +26,12 @@ You are not the tech lead, the architect, or the EM. Architectural judgment beyo
 
 ## Verification
 
+For this repository's e2e tests:
+
+- Use explicit `//Arrange`, `//Act`, and `//Assert` sections in that order: prepare inputs and page/component objects, perform interactions, then verify outcomes.
+- Put assertions and expectations in test classes only. Page/component classes expose locators and interactions without assertions or expectations. Synchronize interactions with navigation or element waits.
+- Preserve the user's existing test and method names unless a rename is requested.
+
 Before declaring done, run [perform-preflight](../perform-preflight/SKILL.md) or follow the repo's `AGENTS.md` and verification skills. Repo-level guidance is the canonical source for build, lint, format, and test commands.
 
 ## Cross-Plugin Integration

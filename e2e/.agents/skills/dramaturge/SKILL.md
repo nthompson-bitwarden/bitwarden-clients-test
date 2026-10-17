@@ -30,7 +30,7 @@ Dramaturge is browser automation for .NET over the W3C WebDriver BiDi protocol, 
 
 Read [e2e build and lifecycle instructions](../../../BUILDING.md) and [the server guide](../../../Server/README.md). `e2e/e2e.csproj` currently pins `Dramaturge` and `Dramaturge.NUnit` to 0.0.2 on .NET 10. Upstream main may describe newer APIs or browser fixes: check installed package signatures and pinned-version documentation before using an example; do not upgrade dependencies implicitly.
 
-Tests inherit `e2e.Web.BaseTest`, `e2e.Browser.BaseTest`, or `e2e.Desktop.BaseTest`, reusing `Page`, `Group`, `ServerUrl`, and seeded `Account`. These manage builds, server setup, and fresh per-test browser/Electron processes. Follow that lifecycle rather than adding a second launch, a generic `PageTest`, or parallel fixtures. Upstream shared-browser recommendations apply only to standalone code outside these base classes.
+Tests inherit `e2e.Web.BaseTest`, `e2e.Browser.BaseTest`, or `e2e.Desktop.BaseTest`, reusing `Page`, `Group`, `ServerUrl`, and seeded `Account`. Web's base inherits Dramaturge NUnit `PageTest` and reads an existing seeded manifest; the backend and Web server must be started manually before tests. Do not add Web builds, server startup, readiness polling, or service teardown to tests. Browser and Desktop manage their backend/build setup and fresh per-test browser/Electron processes. Follow the client base class lifecycle rather than adding a second launch or parallel fixtures.
 
 ## Launching
 

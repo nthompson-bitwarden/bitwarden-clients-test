@@ -42,7 +42,9 @@ def verify(manifest):
         sync = request(f"{server}/api/sync", token=login["access_token"])
         if not sync.get("ciphers") or not sync.get("folders"):
             raise ValueError(f"{client} account has no CLI-seeded vault data")
+        account["userId"] = str(uuid.UUID(sync["profile"]["id"]))
         print(f"{client}: password login and sync passed ({len(sync['ciphers'])} ciphers, {len(sync['folders'])} folders)")
+    manifest.write_text(json.dumps(settings, indent=2) + "\n")
 
 
 if __name__ == "__main__":

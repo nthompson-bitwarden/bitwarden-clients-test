@@ -9,6 +9,7 @@ namespace e2e;
 public abstract class BaseTest
 {
     protected abstract ClientKind Client { get; }
+    protected virtual string BrowserBuildTarget => "chrome";
     protected SeededEnvironment Server { get; private set; } = null!;
     protected SeededAccount Account => Server.Accounts[Client.ToString()];
     protected string ServerUrl => Server.ServerUrl;
@@ -17,7 +18,7 @@ public abstract class BaseTest
     protected Page Page { get; private set; } = null!;
 
     [OneTimeSetUp]
-    public async Task PrepareClientAsync() => Server = await TestRuntime.Shared.PrepareAsync(Client);
+    public async Task PrepareClientAsync() => Server = await TestRuntime.Shared.PrepareAsync(Client, BrowserBuildTarget);
 
     [SetUp]
     public async Task StartClientAsync()

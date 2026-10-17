@@ -22,13 +22,13 @@ container names, and database/key volumes are separate from other installations.
 
 The default endpoints are:
 
-| Service | URL |
-| --- | --- |
-| Web vault / self-hosted server | `http://localhost:18090` |
-| API | `http://localhost:18090/api` |
-| Identity | `http://localhost:18090/identity` |
-| Captured email | `http://localhost:18091` |
-| Optional Seeder API | `http://localhost:18092` |
+| Service                        | URL                               |
+| ------------------------------ | --------------------------------- |
+| Web vault / self-hosted server | `http://localhost:18090`          |
+| API                            | `http://localhost:18090/api`      |
+| Identity                       | `http://localhost:18090/identity` |
+| Captured email                 | `http://localhost:18091`          |
+| Optional Seeder API            | `http://localhost:18092`          |
 
 Host ports bind to loopback. HTTP on localhost provides a browser secure context;
 use this installation from local clients. Remote devices need a trusted HTTPS
@@ -40,16 +40,18 @@ Startup invokes the CLI's `individual --subscription free --vault` command for
 each client, with PBKDF2 set to 600,000 iterations. Each account starts with roughly
 75 personal vault items and folders; generated item contents may vary between resets.
 
-| Client | Email | Default master password |
-| --- | --- | --- |
+| Client  | Email                     | Default master password  |
+| ------- | ------------------------- | ------------------------ |
 | Browser | `e2e-browser@example.com` | `E2e-Test-Password-123!` |
 | Desktop | `e2e-desktop@example.com` | `E2e-Test-Password-123!` |
-| Web | `e2e-web@example.com` | `E2e-Test-Password-123!` |
+| Web     | `e2e-web@example.com`     | `E2e-Test-Password-123!` |
 
 Tests can read `.state/test-environment.json` for the actual server URL and
 credentials. This file is ready for use **after `up` succeeds**. Tests do not need
 a Seeder API client. The CLI and server share database settings, attachment storage,
 and ASP.NET Data Protection keys so vault contents are encrypted for real client use.
+Verification also records each account's `userId` in the manifest so Web tests can
+inject account-specific onboarding dismissal state before loading the client.
 
 Default seeding runs once per database. Repeated `up` or `seed` preserves accounts
 and test changes. If seeding fails halfway through, startup fails and asks for a
