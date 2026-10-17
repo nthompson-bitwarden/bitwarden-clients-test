@@ -29,7 +29,7 @@ pr_spec:
   branch: "force-multiplier/npm-to-pnpm"
   title: "[PM-XXXXX] deps: Migrate from npm to pnpm"
   body: "<filled from the resolved PR template>"
-  labels: ["ai-review"]
+  labels: []
   draft: true
 safety_policy:
   max_targets_per_run: 10

@@ -65,9 +65,9 @@ Force Multiplier is the **cross-target** layer. Per-target intelligence lives in
 
 - [perform-preflight](../perform-preflight/SKILL.md) — the quality gate before any commit.
 - [committing-changes](../committing-changes/SKILL.md) — the commit message format.
-- [applying-pr-conventions](../applying-pr-conventions/SKILL.md) — the title (including the type keyword that drives the `t:` label), the template body, and the `ai-review` label. It invokes `labeling-changes` to pick the type.
+- [applying-pr-conventions](../applying-pr-conventions/SKILL.md) — the conventional title, type mapping, and template body. No AI review label is offered or applied in this fork.
 
-Of these, `applying-pr-conventions` is **interactive** — it proposes a title and asks the label question, which you cannot answer dozens of times. Resolve it at **PILOT**: invoke it once and tell it the title and label are locked for the whole campaign, so it proposes and asks once, using the pilot's ticket key on every target. Then replicate that confirmed pattern non-interactively across the fan-out as draft PRs. It composes conventions and nothing else, so it neither reviews nor submits, and there is no gate to suppress.
+Resolve the title/body pattern at **PILOT**, then reuse it across the authorized fan-out. There is no label-selection question. For this checkout, every PR targets origin explicitly under the shared standalone-fork rules, including campaigns confined to projects in this monorepo. Metadata composition neither reviews nor submits; use [creating-pull-request](../creating-pull-request/SKILL.md) for submission.
 
 ## Safety defaults (non-negotiable unless explicitly overridden)
 

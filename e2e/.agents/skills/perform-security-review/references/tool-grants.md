@@ -43,6 +43,6 @@ deletes the repository.
 
 This adaptation removes `allowed-tools`; none of the skills pre-approves execution. Actual permissions come from the host and credential scope. Aikido, GitHub, and other integrations may all be unavailable or denied. Record each outcome honestly; an unavailable scanner is not a clean scan.
 
-Prefer read-only `GH_TOKEN` scope and minimal workflow permissions for review jobs. A prose instruction or shell prefix is not a sandbox. `gh repo view --json defaultBranchRef` cannot select a destructive HTTP verb and is preferred for branch discovery. Explicit GET requests for secret scanning and Dependabot still require host permission and authenticated access.
+Prefer read-only `GH_TOKEN` scope and minimal workflow permissions for review jobs. A prose instruction or shell prefix is not a sandbox. `gh repo view <origin-owner/repo> --json defaultBranchRef` cannot select a destructive HTTP verb and is preferred for branch discovery. Explicit GET requests for secret scanning and Dependabot still require host permission and authenticated access.
 
 Git diff/log options can write files (for example, `--output`), so validate refs and pass untrusted values as data. Never use contributor text as command syntax. Clear only the temporary diff created by the current run with the host's file-writing API; do not use wildcard recursive cleanup commands.

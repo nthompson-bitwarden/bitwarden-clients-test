@@ -1,15 +1,9 @@
 ---
 name: creating-pull-request
 description:
-  Open a pull request from a branch in a Bitwarden repository. Use whenever the user wants a branch turned
-  into a pull request, however they phrase it — "create a PR", "open a PR", "ship a draft", "ship it", "ready for
-  review", "put it up for review", "get this in front of reviewers", "send it over to the team", "throw together
-  a pull request", "wrap this branch up". Use it too when the user says the title and body are already settled and
-  only the PR needs opening — the gate, the preview, and the submission still apply. Runs the required local code-review
-  gate, takes the title, template body, and ai-review label from applying-pr-conventions, confirms a full submission
-  preview, then pushes and runs gh pr create. Not for composing a title, body, or label when no PR is being opened
-  (that is applying-pr-conventions), conceptual questions ("how do PRs work"), or managing existing PRs (status,
-  merging, addressing comments).
+  Create a pull request within this standalone fork, always targeting origin.
+  Use for requests to create or open a PR, ship a draft, or put a branch up for review.
+  Runs preflight and local review, composes metadata, previews the submission, and creates the PR.
 license: ../../licenses/bitwarden/LICENSE.txt
 metadata:
   upstream-source: https://github.com/bitwarden/ai-plugins/blob/1fc3d580ba45267f15131bea850c9cf39091d716/plugins/bitwarden-delivery-tools/skills/creating-pull-request/SKILL.md
@@ -20,13 +14,15 @@ Read [the portability guide](../../PORTABILITY.md) before following this workflo
 
 # Creating a Pull Request
 
-This workflow owns the two things about opening a pull request that are expensive to get wrong: the review that has to happen before anyone else looks at the change, and the submission itself. [applying-pr-conventions](../applying-pr-conventions/SKILL.md) composes the title, body, and label; this workflow gates, previews, and submits them.
+## Resolve the origin target
 
-Neither is cheap to undo. A PR opened on unreviewed work buries the real problem under comment threads, and the title is permanent in the merge commit. So Step 3 shows every decision together before anything is pushed.
+This repository is a permanent standalone fork. Every PR must have its base repository set to the repository identified by `git remote get-url origin`. Never target `upstream`, the GitHub fork parent, or `bitwarden/clients`, even when GitHub CLI defaults to that parent. Do not change GitHub's global/default repository configuration to accomplish this.
 
-## Workflow
+1. Read `origin` and the current branch. Parse the origin URL as a GitHub HTTPS or SSH repository URL and validate the resulting `owner/repo` before using it as a command argument. If origin is missing or cannot be resolved, stop; never fall back to upstream.
+2. Use an explicitly requested base branch only within origin. Otherwise query origin explicitly with `gh repo view <origin-owner/repo> --json defaultBranchRef --jq .defaultBranchRef.name`. Resolve and validate `origin/<base-branch>` for local review. Never use unqualified repository discovery. If discovery fails, report the failure rather than guessing a different repository.
+3. Check for an existing PR with explicit `--repo <origin-owner/repo>` and `--head <branch>`. Reuse an existing PR for the intended base rather than creating a duplicate.
 
-Follow these steps in order. Each one produces information the next step needs, and the preview in Step 3 depends on all of them.
+Validate branch/ref values before inserting them into commands, following the shared execution contract. Use quoted data arguments. An origin-targeted PR must also use a head branch pushed to origin.
 
 ### Step 1 — Confirm preflight, then run the code-review gate
 
@@ -34,7 +30,7 @@ A PR opened on broken work, or on work that skipped review, wastes reviewer time
 
 **1a — Verify preflight evidence.** Reuse checks already run against the current diff. Otherwise read [perform-preflight](../perform-preflight/SKILL.md) and run the relevant checks. Report failures and stop before submission if required checks cannot pass. Do not ask the user to attest to checks you can perform yourself.
 
-**1b — Run a local review.** Choose depth from the change: [code-review-local](../code-review-local/SKILL.md) for ordinary changes, [performing-multi-agent-code-review](../performing-multi-agent-code-review/SKILL.md) for architectural, cross-cutting, or security changes. Respect an explicit user preference. Review the full intended branch diff against its validated base, even if pending changes also exist; name any pending changes omitted. A user-requested skip must be recorded in the PR body and preview; do not silently skip.
+**1b — Run a local review.** Choose depth from the change: [code-review-local](../code-review-local/SKILL.md) for ordinary changes, [performing-multi-agent-code-review](../performing-multi-agent-code-review/SKILL.md) for architectural, cross-cutting, or security changes. Respect an explicit user preference. Review the full intended branch diff against `origin/<base-branch>`, even if pending changes also exist; name any pending changes omitted. A user-requested skip must be recorded in the PR body and preview; do not silently skip.
 
 After the review:
 
@@ -44,89 +40,34 @@ After the review:
 
 The bundled reviewer and multi-pass skills need no plugin installation. If one path cannot run, use the other and note the limitation in the PR body. If neither is usable, report the missing capability and retain the local PR draft. Never silently skip the review.
 
-### Step 2 — Compose the title, body, and label
+### Step 2 — Compose title and body
 
-Invoke [applying-pr-conventions](../applying-pr-conventions/SKILL.md) for this one pull request. It owns the title and the type keyword behind the `t:` label, the body built from whichever template it resolves, and the `ai-review` label question.
+Use [applying-pr-conventions](../applying-pr-conventions/SKILL.md). Pass the actual review results and coverage limits from Step 1. Return its title, body, conventional type mapping, and template source. Do not ask about or apply AI review labels; they do not exist in this repository.
 
-Pass it what Step 1 produced, since it does not go looking for review results itself: the review path taken, any skip the user volunteered, every deferred CRITICAL or IMPORTANT finding, and any scope or path limitation on the review, such as a fallback taken because one path was unavailable. Those go into the body's AI-assisted review section.
+### Step 3 — Preview the submission
 
-Carry back the title, the body, the resolved `t:` label its prefix will produce, the `ai-review` label choice, and which template the body was built from. Step 3's preview shows all five — it prints the `type → t:<label>` mapping, and that mapping has no other source in this workflow — and Step 4 submits the title, body, and label.
+Before pushing or creating a PR, show the complete target, base branch, head branch, draft status, title, conventional type mapping, review outcome/deferred findings, template source, and full body in one preview. Do not include an AI review label choice.
 
-The template source belongs in the preview because only one of its values is the target repo's own. A body built from the embedded copy can carry a section header that has drifted from what reviewers scan for, and this preview is the only place a person sees the body before it is submitted.
+Carry forward existing user authorization. Ask for submission permission only when it is still missing; do not ask again after a request to create this concrete PR. Apply requested metadata edits before submission.
 
-The values the `Template:` line can take are defined in `applying-pr-conventions` under **Returning to the caller**. The preview block below is the only place they are restated, because it is a display format; change them there and here together or the preview will offer a label the callee never returns.
+### Step 4 — Push and create in origin
 
-Two are easy to get wrong. Do not state a cause alongside the source: several conditions send the skill to the embedded copy and only one is the network, so naming the fetch sends the user to fix the wrong thing when the remedy was approving the grant. And when the user arrived with the body already written, no template was consulted, which is what the line should say rather than a label asserting the body follows one nobody checked.
+Push the branch to origin if needed. Create as a draft unless the user explicitly requested ready-for-review. Always supply `--repo`, `--base`, and `--head`; never rely on GitHub CLI's fork-parent defaults. Omit `--label`.
 
-Both strings are untrusted: the body is template text plus generated text whichever source the `Template:` line names, and the title's summary is generated. Step 4's file-handoff rules are what contain that; do not interpolate either into a shell argument.
-
-### Step 3 — Show the full submission preview, then confirm
-
-This is the most important step in this workflow. **Before running any `git push` or `gh pr create`, show the user a single preview block containing every decision made above.** This is the catch-net for failure modes like title typos, missing type prefix, body drifting from the template, or the AI review label getting dropped between Step 2 and submission.
-
-Use this exact format:
-
-```
-═══════════════════════════════════════
-  PULL REQUEST SUBMISSION PREVIEW
-═══════════════════════════════════════
-Target repo:    <owner/repo>
-Branch:         <branch-name>
-Draft:          <Yes / No>
-Title:          <full title as it will be submitted>
-Type prefix:    <type>  →  will apply  t:<label>
-AI review:      <ai-review / ai-review-vnext / No label>
-Code review:    <Standard | Substantial | Skipped (user request)>  →  <N deferred findings recorded>
-Template:       <target repo | bitwarden/template (canonical) | embedded copy (fallback) | not consulted (body supplied)>
-
-Body:
----
-<full body, exactly as it will be submitted>
----
-═══════════════════════════════════════
-```
-
-If submission authorization is still needed, ask through the host’s normal user-input mechanism after showing the complete preview. Do not assume a proprietary `preview` field or a particular question-tool schema. If the user already authorized this concrete submission, carry that authorization forward without asking again.
-
-- **Question**: "Submit this PR as previewed?"
-- **Options**:
-  - `Submit as shown` — proceed to Step 4 with the previewed values
-  - `Edit title or body` — apply the requested edit, then redisplay the preview and re-ask
-  - `Change ai-review label` — ask the label question again here (`ai-review`, `ai-review-vnext`, `No label`), then redisplay the preview and re-ask. Do not re-enter [applying-pr-conventions](../applying-pr-conventions/SKILL.md); it would recompose the title and body and discard any edit just applied
-  - `Cancel` — stop without pushing or creating the PR
-
-Continue to Step 4 once the concrete submission is authorized. The recap is non-negotiable — some failures (title in the merge commit, label-driven automation routing) are painful to undo once the PR is live, so a visible chance to catch issues at submission time pays for itself many times over.
-
-### Step 4 — Push and create
-
-Push the branch and run `gh pr create` with the confirmed values. Pass the body via `--body-file`, not `--body`: the body carries model- and review-generated text (derived from untrusted repo content), and interpolating it into a double-quoted shell argument would let backticks or `$(…)` execute. Write it to a temp file and hand `gh` the path.
-
-**The title gets the same treatment, by a different route — `gh` has no `--title-file`.** Write it to a file with the `Write` tool and pass it as `--title "$(cat <title-file>)"`. Command-substitution output is not re-parsed, so a `$(…)` or backtick surviving in the text is handed to `gh` as characters. **Never assign the title to a shell variable**, and never build it with `echo` or a heredoc: a bash assignment expands `$(…)` while parsing, which runs the payload before `gh` is even reached.
+Write generated title and body to temporary files using the host's file-writing API. Pass body with `--body-file` and title using `--title "$(cat <title-file>)"`; command-substitution output is not re-parsed as shell code. Never interpolate generated text into shell syntax.
 
 ```bash
 git push -u origin <branch-name>
-# Write the body and the title to temp files first, with the Write tool.
-gh pr create --draft \
-  --title "$(cat "$title_file")" \
-  --body-file "$body_file" \
-  --label "<label>"
+gh pr create --repo <origin-owner/repo> --base <base-branch> --head <branch-name> --draft \
+  --title "$(cat <title-file>)" --body-file <body-file>
 ```
 
-Defaults that hold unless the user said otherwise:
+If the CLI fails while querying `repository.parent` (for example, upstream SAML enforcement), use the REST endpoint for the same validated origin repository instead of requesting upstream access. Check origin for an existing PR before retrying an ambiguous creation failure. Keep the same previewed metadata and draft status:
 
-- create as **draft** — only skip `--draft` if the user explicitly asked for a ready-for-review PR,
-- include `--label` only if a label was picked in Step 2 (omit it for "No label"),
-- multiple labels can be passed by repeating `--label`.
+```bash
+gh api --method POST repos/<origin-owner/repo>/pulls \
+  -F title=@<title-file> -F body=@<body-file> \
+  -f head=<branch-name> -f base=<base-branch> -F draft=true
+```
 
-After `gh pr create` returns, post the PR URL back to the user.
-
-## Common Failure Modes
-
-These are what the Step 3 preview is built to prevent. Recognizing them helps when adjusting the draft mid-workflow:
-
-- **Title with no type prefix** → `[PM-12345] Add autofill for passkeys` ships with no `t:` label. Include `feat:`, `fix:`, etc.
-- **Generic body replacing the template** → check what Step 2 returned actually follows the sections of the template the `Template:` line names; `applying-pr-conventions` reads that template, but the preview is where a drifted body is caught. On the `not consulted` value there is no template to check the body against, so check that the body was the one the user supplied.
-- **Label answer dropped between Step 2 and Step 4** → the recap surfaces it; if it's missing there, it's about to be missing on the PR.
-- **`PM-XXXXX` left as a placeholder** → tracking links won't resolve. Catch in Step 2 or Step 3.
-
-If any of these slip past the preview, recovery is awkward — the title is permanent in the merge commit, and labels feed downstream filtering and automation.
+Omit `--draft` or set `draft=false` only for an explicitly requested ready-for-review PR. Verify the response's base repository equals origin and its base/head refs match the preview, then return the PR URL.

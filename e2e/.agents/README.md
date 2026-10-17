@@ -23,6 +23,7 @@ The Bitwarden source license is retained verbatim, including its internal develo
 
 ## Adaptations
 
+- Treat this repository as a permanent standalone fork: PRs explicitly target origin, with no upstream-parent fallback. PR creation has no AI review label prompt or label application because those labels do not exist here.
 - Flattened skill discovery into one canonical directory without name collisions. Converted agent roles and review commands into standard skills; retained their supporting files.
 - Normalized YAML, including malformed unquoted upstream descriptions. Merged custom routing criteria into supported descriptions/body. Removed client execution frontmatter such as `tools`, `model`, `skills`, `context`, `background`, `agent`, and command-only fields.
 - Replaced skill invocations with local relative links; resolved moved shared security references and plugin-root paths. Replaced client-specific tool names and plugin-data paths with host capabilities and repository-local artifacts.

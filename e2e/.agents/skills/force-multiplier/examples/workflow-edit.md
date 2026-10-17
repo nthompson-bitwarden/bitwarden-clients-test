@@ -23,7 +23,7 @@ pr_spec:
   branch: "force-multiplier/retire-<name>-workflow"
   title: "[PM-XXXXX] ci: Remove deprecated <name> workflow"
   body: "<filled from the resolved PR template>"
-  labels: ["ai-review"]
+  labels: []
   draft: true
 safety_policy:
   max_targets_per_run: 10

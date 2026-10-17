@@ -28,7 +28,7 @@ Per target, in order:
 8. **Validate.** Run the target's gate (`validation` field + [perform-preflight](../../perform-preflight/SKILL.md)). Fail → `failed`, no commit, no PR.
 9. **Secrets-scan** the staged diff. Any hit → `failed`, no commit.
 10. **Commit** per [committing-changes](../../committing-changes/SKILL.md), using the locked title/type.
-11. **Push and open a draft PR** per the locked `pr_spec` — never to a default branch, never force-pushed. Capture the PR URL.
+11. **Push and open a draft PR** per the locked `pr_spec` and [creating-pull-request](../../creating-pull-request/SKILL.md). For this checkout, push the feature branch to origin and explicitly target origin's repository and base branch; never target upstream or the GitHub fork parent. Do not offer or apply AI review labels. Never push changes directly to a default branch or force-push. Capture the PR URL.
 
     **Pass the body with `--body-file`, never `--body`.** The body came from a PR template and model-generated text, so it is untrusted content whichever template was resolved; interpolating it into a double-quoted shell argument would let backticks or `$(…)` execute, once per target. Write it to a file and hand `gh` the path. The title needs the same handling by a different route, since `gh` has no `--title-file`: write it with the `Write` tool and use `--title "$(cat <title-file>)"`, whose output is not re-parsed. Never assign the title to a shell variable and never build it with `echo` or a heredoc — a bash assignment expands `$(…)` while parsing, which runs the payload before `gh` is reached.
 

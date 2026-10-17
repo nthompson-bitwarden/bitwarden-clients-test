@@ -61,7 +61,7 @@ Execute these steps in order. Do not skip, reorder, or combine them. Three place
 
    Otherwise, candidates in order:
    1. `git rev-parse --abbrev-ref origin/HEAD` — its output, when the command exits 0. Key on the exit status, never the output.
-   2. `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`, giving `origin/<default_branch>`. Not `gh api`; see `references/tool-grants.md`. Build it whenever candidate 1 does not yield a base ref — either its command exited non-zero, so there is no candidate 1 at all, or its output failed one of the three checks. If the API call itself fails, candidate 2 does not exist.
+   2. `gh repo view <origin-owner/repo> --json defaultBranchRef --jq .defaultBranchRef.name`, giving `origin/<default_branch>`. Use the validated origin identity from step A, never implicit fork-parent discovery. Not `gh api`; see `references/tool-grants.md`. Build it whenever candidate 1 does not yield a base ref — either its command exited non-zero, so there is no candidate 1 at all, or its output failed one of the three checks. If the API call itself fails, candidate 2 does not exist.
 
    **Every candidate passes all three checks, in this order, whatever its source.** A probe candidate that fails any check is discarded and resolution falls through to the next probe. A caller-supplied `--base-ref` has no next candidate, so it goes straight to the abort.
    1. It matches `^[A-Za-z0-9_][A-Za-z0-9._/-]*$`, checked **before the value is placed in any command**. The reference file covers what that catches and why the leading character is pinned on its own.

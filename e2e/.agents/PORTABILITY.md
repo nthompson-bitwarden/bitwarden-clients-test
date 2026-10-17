@@ -10,6 +10,14 @@ Resolve Markdown links relative to the file containing the link. Resolve script 
 
 `AGENTS.md` governs `e2e/` and descendants in clients that support scoped instructions. Start the agent in `e2e/`, or explicitly load `e2e/AGENTS.md` when working from the monorepo root. Clients that do not automatically scan nested instructions/skills need that explicit entrypoint or their own discovery configuration. No format can force every client to auto-discover files. The tiny `e2e/CLAUDE.md` import and `.claude/skills` symlink provide Claude compatibility without maintaining duplicate skills. Other clients can point their skill-discovery setting to `e2e/.agents/skills` or use the linked catalog.
 
+## Standalone fork and GitHub targets
+
+This checkout is a permanent standalone fork. All PRs created for it must target the repository identified by `git remote get-url origin`, with head branches pushed to origin. Never target the `upstream` remote, GitHub's fork parent, or `bitwarden/clients`. A requested base branch selects a branch within origin, not another repository. Missing or unresolved origin is a stopping condition, never a reason to fall back to upstream.
+
+Resolve and validate origin's GitHub `owner/repo` from its HTTPS or SSH URL. Pass it explicitly to GitHub CLI repository operations (`--repo <origin-owner/repo>` for PR commands, the positional repository for `gh repo view`, and `repos/<origin-owner/repo>/...` for API calls). Resolve the default branch from origin explicitly and review against `origin/<base-branch>`. Generic commands in imported workflows must be qualified this way when used on this checkout. Do not rely on GitHub CLI's implicit fork-parent selection or change global CLI defaults. Upstream source URLs and revisions remain provenance/reference data, not PR destinations.
+
+The `ai-review` and `ai-review-vnext` labels do not exist in this repository. Never prompt to select them or add them when creating a PR. Local review and an AI-assisted review section in the body do not require labels. Do not assume source-repository label automation exists here.
+
 ## Capabilities, permissions, and authorization
 
 | Upstream convention                        | Portable operation                                                                                                                                                                                          |

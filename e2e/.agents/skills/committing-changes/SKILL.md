@@ -16,7 +16,7 @@ Read [the portability guide](../../PORTABILITY.md) before following this workflo
 
 ## Branch Check
 
-Resolve the repository's default branch from the remote rather than assuming `main`. If the current branch is the default, ask for a branch name before staging or committing. Offer to suggest one and confirm before switching. If the default branch cannot be resolved, say so and confirm the current branch is intended before staging.
+Resolve the repository's default branch from origin explicitly rather than assuming `main` or using GitHub's implicit fork-parent selection. If the current branch is the default, ask for a branch name before staging or committing. Offer to suggest one and confirm before switching. If the default branch cannot be resolved, say so and confirm the current branch is intended before staging.
 
 ## Commit Message Format
 

@@ -14,7 +14,7 @@ Read [the portability guide](../../PORTABILITY.md) before following this workflo
 
 # Labeling Changes
 
-PR titles and commit messages must include a conventional commit type keyword. This keyword drives automatic `t:` label assignment via CI (`.github/scripts/label-pr.py` reads `.github/label-pr.json`).
+PR titles and commit messages must include a conventional commit type keyword. The source repository maps this keyword to `t:` labels via CI (`.github/scripts/label-pr.py` reads `.github/label-pr.json`). Treat that mapping as a convention in this standalone fork; do not assume the automation or labels are configured here. Do not prompt for or apply AI review labels.
 
 Return the chosen type keyword and the `t:` label it maps to.
 

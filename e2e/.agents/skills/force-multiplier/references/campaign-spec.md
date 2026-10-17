@@ -43,9 +43,9 @@ The per-target gate that must pass before a commit is made. Defined by what the 
 The shape of the change as it is delivered. Confirmed once on the pilot, then replicated:
 
 - `branch` — a deterministic branch name template (same input → same branch, so re-runs are no-ops).
-- `title` — follows [applying-pr-conventions](../../applying-pr-conventions/SKILL.md) format (`[TICKET] <type>: <summary>`), so CI applies the right `t:` label. `[TICKET]` is a placeholder — substitute a real tracking-issue key, never the literal word.
+- `title` — follows [applying-pr-conventions](../../applying-pr-conventions/SKILL.md) format (`[TICKET] <type>: <summary>`), with the conventional type mapping; do not assume label automation exists. `[TICKET]` is a placeholder — substitute a real tracking-issue key, never the literal word.
 - `body` — fills whichever template [applying-pr-conventions](../../applying-pr-conventions/SKILL.md) resolves for the target repo, which is its own `.github/PULL_REQUEST_TEMPLATE.md` when it has one.
-- `labels` — the `ai-review` choice and any others, confirmed at pilot.
+- `labels` — empty for this fork; no AI review label prompt or application.
 - `draft` — `true` by default.
 
 ### `safety_policy`
@@ -78,7 +78,7 @@ pr_spec:
   branch: "<deterministic-branch-name-template>"
   title: "[<TICKET>] <type>: <summary>"
   body: "<filled from the resolved PR template>"
-  labels: ["<ai-review choice>"]
+  labels: []
   draft: true
 safety_policy:
   max_targets_per_run: 10

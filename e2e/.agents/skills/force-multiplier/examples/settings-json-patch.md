@@ -23,7 +23,7 @@ pr_spec:
   branch: "force-multiplier/claude-settings-<key>"
   title: "[PM-XXXXX] chore: Standardize <key> in .claude/settings.json"
   body: "<filled from the resolved PR template>"
-  labels: ["ai-review"]
+  labels: []
   draft: true
 safety_policy:
   max_targets_per_run: 10

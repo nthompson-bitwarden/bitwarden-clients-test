@@ -82,8 +82,12 @@
     "dramaturge": {
       "url": "https://github.com/webdriverbidi-net/dramaturge",
       "revision": "b95fcbbd6694873f3ca848ef1437e08eba2607cd",
-      "paths": ["skills"],
-      "excluded_paths": ["skills/.claude-plugin/plugin.json"]
+      "paths": [
+        "skills"
+      ],
+      "excluded_paths": [
+        "skills/.claude-plugin/plugin.json"
+      ]
     }
   },
   "files": [
@@ -93,7 +97,7 @@
       "source_sha256": "bd26a951e91dd464be25574299bf096e7cb1e07d464a7fee14001e695ea5b154",
       "destination": "skills/applying-pr-conventions/SKILL.md",
       "kind": "skill",
-      "destination_sha256": "15afb98f855b6981667c848b21891709b985c2e58371332e01ce0a7ab36e22a7"
+      "destination_sha256": "ee009d7164dad74caed36feedebacf1cb8cf207ed471ebbca5ec57cc4f7d1384"
     },
     {
       "repository": "bitwarden",
@@ -109,7 +113,7 @@
       "source_sha256": "e0c1b80e38bf27987b3cf8267bc23070676d51bc73e2f8fec17ab4f8314aa95f",
       "destination": "skills/committing-changes/SKILL.md",
       "kind": "skill",
-      "destination_sha256": "ad5372f7b1d2542e233c52a343c35ffc0b1b8038c2b88f1990529387623fb06f"
+      "destination_sha256": "4be084a502229ec192eeee286eb111eb9846a7565ff46c3b0c9174302ef56af4"
     },
     {
       "repository": "bitwarden",
@@ -117,7 +121,7 @@
       "source_sha256": "f71133ff112467ef8873328834b8abe0c44587d752b18cd3815c8b75c7ae3f36",
       "destination": "skills/creating-pull-request/SKILL.md",
       "kind": "skill",
-      "destination_sha256": "9006505aea7205bfa572a5aab1d54a138d2848f3325995545feec136e546daca"
+      "destination_sha256": "5a557eb354be19027753b6a54779863e4df506e185858f7ab0391fbeaf91a55f"
     },
     {
       "repository": "bitwarden",
@@ -133,7 +137,7 @@
       "source_sha256": "4b4d427a4c3b8307ebefe2e0bbb88df8ff15effb38da31a2730d69ec4387d7a9",
       "destination": "skills/force-multiplier/SKILL.md",
       "kind": "skill",
-      "destination_sha256": "34681addcc64d4e51d65028036db4da758894848fbcd5a89eb9dd9efa0230061"
+      "destination_sha256": "e248a63b49a3f1431dbfd4455de0d5169c9d39ae9744e09659bfc00044026f78"
     },
     {
       "repository": "bitwarden",
@@ -141,7 +145,7 @@
       "source_sha256": "53318b8fd0877835bbe5d7a7f4561dc69cc8add39f1a44ffe4aef6eb96e161b8",
       "destination": "skills/force-multiplier/examples/npm-to-pnpm.md",
       "kind": "skill",
-      "destination_sha256": "2e1dd979c20fdc30f5cf33a2d0bf24e3adb062946eebdbb8d01200b8757938c4"
+      "destination_sha256": "2f33f4fabe693e503e617ab32c94f091a384ded842e64d3a6d9200f42477625b"
     },
     {
       "repository": "bitwarden",
@@ -149,7 +153,7 @@
       "source_sha256": "9962a59d9fd654b51b6bbe49105ff16fb2909ec1351a74a41bfa6580722d8f59",
       "destination": "skills/force-multiplier/examples/settings-json-patch.md",
       "kind": "skill",
-      "destination_sha256": "59ac2006ea9d92cc8a84913b9e3deec52e9744c9963c325ee731f82b1717ced8"
+      "destination_sha256": "babc127c4c0964c9e183ebd26e8f28461e5db116bdf9265ffd95afc40caf357e"
     },
     {
       "repository": "bitwarden",
@@ -157,7 +161,7 @@
       "source_sha256": "f55c317fa2d18b9df1de4ce8ab90380bd247d2bc3367e69059fe06962bb8b218",
       "destination": "skills/force-multiplier/examples/workflow-edit.md",
       "kind": "skill",
-      "destination_sha256": "01ba087e2d8da81928b843a95fb2c1f4ba5f601e33d2b936a2ea4c03030e6645"
+      "destination_sha256": "dd7728b7c26647ca530bdd377a32db29f0896b6d883e29333ffd46cee963b07f"
     },
     {
       "repository": "bitwarden",
@@ -165,7 +169,7 @@
       "source_sha256": "9bb374cb8c306fbf59003ed7448299f53a0233fb82b9e0ec35bc5d74922a4706",
       "destination": "skills/force-multiplier/references/campaign-spec.md",
       "kind": "skill",
-      "destination_sha256": "78ff060b5af7dcde595e9e003257bc21ed87179cdc9ca92c9ccf9afd30a6986f"
+      "destination_sha256": "a8a4d4c3681a6aac67600d34034943e76dc7cdf14b90bc39fc7be626fe1590ac"
     },
     {
       "repository": "bitwarden",
@@ -181,7 +185,7 @@
       "source_sha256": "5712dd900fa7a0c3ce7fe597bb0a0ee8c783628c50aec11dc673ca8c533e279f",
       "destination": "skills/force-multiplier/references/pipeline.md",
       "kind": "skill",
-      "destination_sha256": "ae2bd6115e18ab2d952b6d28f75c229b4e2fbb4f6b40c3ad5b5e625b919c16d2"
+      "destination_sha256": "41e701627f524f1839a11ffaaeaac00c3ac0a466795f33721de7df2406666260"
     },
     {
       "repository": "bitwarden",
@@ -197,7 +201,7 @@
       "source_sha256": "d212710fcc1a9a030e36bb25294a12bedef9f78e62c6a4e6a8e593e82871c377",
       "destination": "skills/labeling-changes/SKILL.md",
       "kind": "skill",
-      "destination_sha256": "1cf4db61660f1997716e9bbce23d8d401ea8410ffdee19ad2b949f95907c56d5"
+      "destination_sha256": "0c3931553ecd632583d8420137848633dedf4be3d00be05e133b6371adeb40bd"
     },
     {
       "repository": "bitwarden",
@@ -429,7 +433,7 @@
       "source_sha256": "f88910e2431c6baf6cf5473e37fec378362dc989094b4910e19a32ccd075bed5",
       "destination": "skills/perform-security-review/SKILL.md",
       "kind": "skill",
-      "destination_sha256": "5d95cbc85fa8c19c73a079b780bc3c4d065f145f952939eededace99d78b5b33"
+      "destination_sha256": "839850a07a743d4477cd09054a0a068d9b354ba97851a4aabd0e6410d5630639"
     },
     {
       "repository": "bitwarden",
@@ -453,7 +457,7 @@
       "source_sha256": "a0862b67b77bc924a7fbb3b0722a99574f4711dd0bcf3e8619cbefe5471f5ce2",
       "destination": "skills/perform-security-review/references/tool-grants.md",
       "kind": "skill",
-      "destination_sha256": "76c59987a128ae40c9bd68bb133afa82400c2c2c1f0c089bd87f2224a2ae4674"
+      "destination_sha256": "efd3478916ae4d796232e51d75286aabc8ad57f60a76f85ca0fbf1d064c96826"
     },
     {
       "repository": "bitwarden",

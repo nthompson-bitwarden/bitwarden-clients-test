@@ -12,6 +12,8 @@ This file applies to `e2e/` and its descendants. Read relevant project instructi
 
 ## Using the shared workflows
 
+This is a permanent standalone fork. PRs must always target the repository identified by `origin`, never `upstream` or the GitHub fork parent. Qualify GitHub commands with origin's repository and choose base branches within origin. Do not ask to add `ai-review` or `ai-review-vnext` labels; those labels do not exist here. See the [shared target rules](.agents/PORTABILITY.md#standalone-fork-and-github-targets).
+
 The canonical skills live in `.agents/skills/<name>/SKILL.md`. Read the selected entrypoint and [portable execution contract](.agents/PORTABILITY.md) before following it, then load only the needed references. Resolve links relative to their containing file. The catalog also works for agents without automatic skill discovery: open the linked files directly. From the monorepo root, explicitly load this file or start the agent in `e2e/`.
 
 Roles and former commands are skills, not proprietary subagent definitions. Use host-native tools and delegate only when available and permitted; otherwise execute the scoped passes sequentially and disclose reduced independence. Reviews default to local files. Publishing, pushing, filing issues, or changing external state requires authorization within the user's task; available tools, comment markers, and CI do not supply it. No skill metadata grants permissions. Existing user authorization persists.
@@ -20,7 +22,7 @@ Roles and former commands are skills, not proprietary subagent definitions. Use 
 
 | Skill                                                                      | Use when                                                                           |
 | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [applying-pr-conventions](.agents/skills/applying-pr-conventions/SKILL.md) | Compose PR titles, template bodies, and review labels.                             |
+| [applying-pr-conventions](.agents/skills/applying-pr-conventions/SKILL.md) | Compose PR titles and template bodies for this fork.                               |
 | [architecting-solutions](.agents/skills/architecting-solutions/SKILL.md)   | Design solutions within Bitwarden architectural constraints.                       |
 | [committing-changes](.agents/skills/committing-changes/SKILL.md)           | Prepare meaningful, scoped commits using Bitwarden conventions.                    |
 | [creating-pull-request](.agents/skills/creating-pull-request/SKILL.md)     | Review, preview, and submit a branch as a pull request.                            |
