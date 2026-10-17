@@ -1,7 +1,6 @@
 ---
 name: creating-pull-request
-description:
-  Create a pull request within this standalone fork, always targeting origin.
+description: Create a pull request within this standalone fork, always targeting origin.
   Use for requests to create or open a PR, ship a draft, or put a branch up for review.
   Runs preflight and local review, composes metadata, previews the submission, and creates the PR.
 license: ../../licenses/bitwarden/LICENSE.txt
@@ -20,7 +19,7 @@ This repository is a permanent standalone fork. Every PR must have its base repo
 
 1. Read `origin` and the current branch. Parse the origin URL as a GitHub HTTPS or SSH repository URL and validate the resulting `owner/repo` before using it as a command argument. If origin is missing or cannot be resolved, stop; never fall back to upstream.
 2. Use an explicitly requested base branch only within origin. Otherwise query origin explicitly with `gh repo view <origin-owner/repo> --json defaultBranchRef --jq .defaultBranchRef.name`. Resolve and validate `origin/<base-branch>` for local review. Never use unqualified repository discovery. If discovery fails, report the failure rather than guessing a different repository.
-3. Check for an existing PR with explicit `--repo <origin-owner/repo>` and `--head <branch>`. Reuse an existing PR for the intended base rather than creating a duplicate.
+3. Check for an existing PR through origin's REST endpoint: `gh api --method GET "repos/<origin-owner/repo>/pulls" -f state=open -f "head=<origin-owner>:<branch>" -f "base=<base-branch>"`. Reuse an existing PR for the intended base rather than creating a duplicate.
 
 Validate branch/ref values before inserting them into commands, following the shared execution contract. Use quoted data arguments. An origin-targeted PR must also use a head branch pushed to origin.
 
@@ -52,22 +51,15 @@ Carry forward existing user authorization. Ask for submission permission only wh
 
 ### Step 4 — Push and create in origin
 
-Push the branch to origin if needed. Create as a draft unless the user explicitly requested ready-for-review. Always supply `--repo`, `--base`, and `--head`; never rely on GitHub CLI's fork-parent defaults. Omit `--label`.
+Push the branch to origin if needed. Create as a draft unless the user explicitly requested ready-for-review. Use `gh api --method POST "repos/<origin-owner/repo>/pulls"` as the first creation attempt, with explicit head and base fields. Do not use `gh pr create`, even with `--repo`: it queries `repository.parent` and can trigger upstream SAML enforcement before creating an origin-targeted PR. Do not request upstream access or change global GitHub configuration to work around that lookup.
 
-Write generated title and body to temporary files using the host's file-writing API. Pass body with `--body-file` and title using `--title "$(cat <title-file>)"`; command-substitution output is not re-parsed as shell code. Never interpolate generated text into shell syntax.
-
-```bash
-git push -u origin <branch-name>
-gh pr create --repo <origin-owner/repo> --base <base-branch> --head <branch-name> --draft \
-  --title "$(cat <title-file>)" --body-file <body-file>
-```
-
-If the CLI fails while querying `repository.parent` (for example, upstream SAML enforcement), use the REST endpoint for the same validated origin repository instead of requesting upstream access. Check origin for an existing PR before retrying an ambiguous creation failure. Keep the same previewed metadata and draft status:
+Write generated title and body to temporary files using the host's file-writing API. Pass their contents with `-F "title=@<title-file>"` and `-F "body=@<body-file>"`. Never interpolate generated text into shell syntax.
 
 ```bash
-gh api --method POST repos/<origin-owner/repo>/pulls \
-  -F title=@<title-file> -F body=@<body-file> \
-  -f head=<branch-name> -f base=<base-branch> -F draft=true
+git push -u origin "<branch-name>"
+gh api --method POST "repos/<origin-owner/repo>/pulls" \
+  -F "title=@<title-file>" -F "body=@<body-file>" \
+  -f "head=<branch-name>" -f "base=<base-branch>" -F draft=true
 ```
 
-Omit `--draft` or set `draft=false` only for an explicitly requested ready-for-review PR. Verify the response's base repository equals origin and its base/head refs match the preview, then return the PR URL.
+Set `draft=false` only for an explicitly requested ready-for-review PR. Verify the response's base and head repositories equal origin and its base/head refs match the preview, then return the PR URL. If creation returns an ambiguous failure, check origin's REST list endpoint for an existing PR before retrying; keep the same previewed metadata and draft status.

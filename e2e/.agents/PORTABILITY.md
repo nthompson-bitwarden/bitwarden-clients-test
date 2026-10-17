@@ -18,6 +18,8 @@ Resolve and validate origin's GitHub `owner/repo` from its HTTPS or SSH URL. Pas
 
 The `ai-review` and `ai-review-vnext` labels do not exist in this repository. Never prompt to select them or add them when creating a PR. Local review and an AI-assisted review section in the body do not require labels. Do not assume source-repository label automation exists here.
 
+Create PRs through `gh api --method POST "repos/<origin-owner/repo>/pulls"` on the first attempt, with explicit head and base fields and title/body loaded from files. Do not use `gh pr create`, even with `--repo`: its `repository.parent` lookup can contact upstream and fail under upstream SAML enforcement. Check for existing PRs through origin's REST list endpoint and verify the creation response's base/head repositories and refs. See the [PR creation workflow](skills/creating-pull-request/SKILL.md).
+
 ## Capabilities, permissions, and authorization
 
 | Upstream convention                        | Portable operation                                                                                                                                                                                          |

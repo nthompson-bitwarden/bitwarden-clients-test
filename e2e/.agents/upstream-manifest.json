@@ -117,7 +117,7 @@
       "source_sha256": "f71133ff112467ef8873328834b8abe0c44587d752b18cd3815c8b75c7ae3f36",
       "destination": "skills/creating-pull-request/SKILL.md",
       "kind": "skill",
-      "destination_sha256": "5a557eb354be19027753b6a54779863e4df506e185858f7ab0391fbeaf91a55f"
+      "destination_sha256": "fd873147cc219748e7f325b29f32463f218454c05e46993733ac65e9e25e8544"
     },
     {
       "repository": "bitwarden",
