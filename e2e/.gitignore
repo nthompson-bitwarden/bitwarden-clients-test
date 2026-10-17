@@ -1,2 +1,5 @@
-test-results/
-playwright-report/
+Server/.state/
+bin/
+obj/
+__pycache__/
+TestResults/
