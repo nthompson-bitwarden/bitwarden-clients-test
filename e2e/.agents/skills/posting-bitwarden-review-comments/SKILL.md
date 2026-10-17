@@ -1,0 +1,91 @@
+---
+name: posting-bitwarden-review-comments
+description:
+  Use this skill when emitting inline review comments, whether posted to a GitHub pull request or written
+  to a local file under caller-declared local-file output. Apply when formatting comments following Bitwarden engineering
+  standards with severity emojis, clear explanations, and actionable suggestions. Use after findings are classified
+  and ready to emit. DO NOT USE when posting summary comments.
+license: ../../licenses/bitwarden/LICENSE.txt
+metadata:
+  upstream-source: https://github.com/bitwarden/ai-plugins/blob/1fc3d580ba45267f15131bea850c9cf39091d716/plugins/bitwarden-code-review/skills/posting-bitwarden-review-comments/SKILL.md
+  upstream-revision: 1fc3d580ba45267f15131bea850c9cf39091d716
+---
+
+Read [the portability guide](../../PORTABILITY.md) before following this workflow.
+
+# Posting Bitwarden Review Comments
+
+## Destination Detection
+
+Check destinations **in this order** — use the first match:
+
+| Destination                         | How to Detect                                                                                                                                                                                                         | Action                                                            |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Local output in effect**          | An `OUTPUT: local files` line in the prompt's leading directive block, **or** a caller that passes local files as the destination in effect. Check this first, and never key it on which tools happen to be available | Write to `review-inline-comments.md` in resolved output directory |
+| Local target, no GitHub destination | The review target is local changes and no caller declared a GitHub destination                                                                                                                                        | Write to `review-inline-comments.md` in resolved output directory |
+| GitHub pull request                 | Explicitly requested GitHub publication; neither local condition applies                                                                                                                                              | Post via `the available GitHub inline-comment integration`        |
+
+Under either local destination, format every finding exactly as below and write them all to the one file — do not post, whatever comment tools happen to be available.
+
+On a GitHub pull request, a finding raised again in an existing thread goes as a reply in that thread, so its history stays in one place. Call `the available GitHub thread-reply integration` with the `database_id` of the thread's first comment as `commentId`, the owner and repository from the threads data's top-level `repository`, and the pull request number as `pullNumber`, which the tool requires whenever a reply has a body. The reply uses the same finding format as an inline comment. When the reply integration is unavailable or fails, retain a local draft and report the limitation; do not create a duplicate inline comment automatically.
+
+## Comment Posting Protocol
+
+1. **MUST** Analyze all changes before emitting anything
+2. **MUST** Use inline comments for code-specific findings
+3. **MUST** Use the Bitwarden finding format
+4. **FORBIDDEN**: Do NOT add "Strengths", "Highlights", or positive observations sections.
+5. **FORBIDDEN** Do NOT post praise-only inline comments
+6. **FORBIDDEN**: Do NOT post PR metadata issues (title, description, test plan) as inline comments. These go in the summary only.
+
+## Finding Format
+
+**CRITICAL: Never use # followed by numbers** - GitHub will autolink it to unrelated issues/PRs.
+
+1. Writing "#1" creates a clickable link to issue/PR #1 (not your finding)
+2. "Issue" is also wrong terminology (use "Finding")
+3. Use "Finding" + space + number (no # symbol); aim for under 30 words in sentence
+
+**CORRECT FORMAT:**
+
+- Finding 1: Memory leak detected
+- Finding 2: Missing error handling
+
+**WRONG (DO NOT USE):**
+
+- ❌ Issue #1 (wrong term + autolink)
+- ❌ #1 (autolink only)
+- ❌ Issue 1 (wrong term only)
+
+## Inline Comments
+
+**Every inline comment MUST:**
+
+1. Reference specific line(s)
+2. State the problem - what breaks or what's the risk?
+3. Provide actionable fix (for ❌ and ⚠️)
+4. Be brief yet clear
+5. Use collapsed sections for comments over 5 lines
+6. Include both opening `<details>` AND closing `</details>` tags
+
+**Visibility Rule:** Only severity + one-line description visible; everything else inside `<details>` tags.
+
+### Template for long comments
+
+```
+[emoji] **[SEVERITY]**: [One-line issue description]
+
+<details>
+<summary>Details and fix</summary>
+
+[Code example or specific fix]
+
+[Rationale explaining why]
+
+Reference: [docs link if applicable]
+</details>
+```
+
+## Summary Output
+
+Invoke [posting-review-summary](../posting-review-summary/SKILL.md) for all summary formatting and posting.
