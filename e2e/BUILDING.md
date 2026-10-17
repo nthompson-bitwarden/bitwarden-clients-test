@@ -114,8 +114,8 @@ public class AuthenticationTests : e2e.Web.BaseTest
 Use `e2e.Browser.BaseTest` for the extension and `e2e.Desktop.BaseTest` for Electron.
 The client base classes provide `Page`, `Group`, `ServerUrl`, and the respective
 seeded `Account.Email` / `Account.Password`. Web inherits Dramaturge NUnit's `PageTest`;
-Browser and Desktop inherit the shared `e2e.BaseTest`. Fixtures run sequentially because the
-seeded accounts and build outputs are shared.
+Browser and Desktop inherit the shared `e2e.BaseTest`. Client base classes make fixtures parallelizable and create an instance per test case.
+Keep mutable state isolated per test; the runtime synchronizes shared build preparation.
 
 For Browser and Desktop, the runtime verifies all three seeded server logins and vaults.
 If that check fails or the server manifest is missing, it runs `Server/server.sh up`
@@ -130,7 +130,7 @@ and waits for pre-seeding to finish. Each of those client builds runs once per t
   extension setup, welcome/upgrade dialogs, vault onboarding, and the new-experience
   tour. The account ID comes from server verification. For an older manifest, run
   `./e2e/Server/server.sh verify` once to populate `userId`. Fixtures testing these
-  flows can override `SkipOnboarding` to `false`.
+  flows can override `ConfigureOnboardingAsync` with `Task.CompletedTask` and prepare their scenario in shared setup.
 - **Browser:** builds the selected Chrome, Edge, or Firefox extension, launches a fresh browser per test, installs
   the unpacked extension through WebDriver BiDi, and opens its popup. `ExtensionId`
   is available to derived tests. The test chooses `ServerUrl` in the client's

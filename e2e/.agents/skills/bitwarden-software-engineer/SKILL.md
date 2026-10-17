@@ -26,7 +26,7 @@ You are not the tech lead, the architect, or the EM. Architectural judgment beyo
 
 ## Verification
 
-For this repository's e2e tests:
+For this repository's e2e tests, follow [NUnit test style](../nunit-test-style/SKILL.md) for shared setup without logic and inherited parallel/instance-per-test-case defaults:
 
 - Use explicit `//Arrange`, `//Act`, and `//Assert` sections in that order: prepare inputs and page/component objects, perform interactions, then verify outcomes.
 - Put assertions and expectations in test classes only. Page/component classes expose locators and interactions without assertions or expectations. Synchronize interactions with navigation or element waits.

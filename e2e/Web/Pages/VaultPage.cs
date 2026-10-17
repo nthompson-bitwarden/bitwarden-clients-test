@@ -6,4 +6,10 @@ public sealed class VaultPage(Page page)
 {
     public ElementLocator ItemsTable => page.GetByRole("table");
     public ElementLocator MasterPassword => page.GetByLabel("Master password");
+
+    public async Task ReloadAsync()
+    {
+        await page.ReloadAsync();
+        await ItemsTable.WaitForAsync();
+    }
 }

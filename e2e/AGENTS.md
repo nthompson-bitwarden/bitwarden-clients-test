@@ -6,13 +6,14 @@ This file applies to `e2e/` and its descendants. Read relevant project instructi
 
 - Read [BUILDING.md](BUILDING.md) for client build commands, prerequisites, settings, and teardown, and [Server/README.md](Server/README.md) for local server setup.
 - This is a .NET 10 NUnit project using `Dramaturge` and `Dramaturge.NUnit`, currently pinned to 0.0.2 in [e2e.csproj](e2e.csproj). Verify installed APIs before using upstream-main examples.
-- Tests inherit the client-specific `BaseTest` in `Web/`, `Browser/`, or `Desktop/`, reusing `Page`, `Group`, `ServerUrl`, and seeded `Account`. Web's base inherits Dramaturge NUnit `PageTest`, using the registered shared browser group and an isolated browser/page per test. Web tests only read the seeded manifest and navigate to a manually started Web server; start the backend and Web script first as documented in `BUILDING.md`. Do not add Web builds, server startup, readiness polling, or service teardown to tests. Browser and Desktop retain their managed backend/build setup and custom per-test launches. Fixtures are sequential because accounts and build outputs are shared. Do not add independent launches or parallel fixtures by following generic framework examples.
+- Tests inherit the client-specific `BaseTest` in `Web/`, `Browser/`, or `Desktop/`, reusing `Page`, `Group`, `ServerUrl`, and seeded `Account`. Web's base inherits Dramaturge NUnit `PageTest`, using the registered shared browser group and an isolated browser/page per test. Web tests only read the seeded manifest and navigate to a manually started Web server; start the backend and Web script first as documented in `BUILDING.md`. Do not add Web builds, server startup, readiness polling, or service teardown to tests. Browser and Desktop retain their managed backend/build setup and custom per-test launches. Client base classes set `[Parallelizable(ParallelScope.All)]` and `[FixtureLifeCycle(LifeCycle.InstancePerTestCase)]`. Keep mutable resources per test and isolate backend mutations; build preparation remains synchronized by the runtime. Do not add independent launches by following generic framework examples.
 - Each client namespace has its own `SetupFixture.cs` for browser/headless defaults and per-client environment overrides. Only Web registers `DramaturgeSetUpFixture` (0.0.2 permits one registration). Browser's selection must also control its extension build target. Desktop attaches to Electron's Chromium engine; headless Linux runs use `xvfb-run`.
 - From the repository root, `dotnet test e2e/e2e.csproj` runs the suite. Target a client with `--filter FullyQualifiedName~e2e.Web.Tests`, or infrastructure with `--filter TestCategory=Infrastructure`. These tests may build clients and start Docker/browser/Electron processes; choose checks appropriate to the change and available prerequisites. Do not claim tests passed if they were not run.
 - Keep generated logs, local review reports, and fresh profiles under ignored `e2e/TestResults/`. Use `e2e/TestResults/agent-artifacts/` for agent reports unless the caller chooses another destination. Never put live credentials or vault data into source, reports, or transcripts.
 
 ## Test structure
 
+- Follow [nunit-test-style](.agents/skills/nunit-test-style/SKILL.md) for straight-line shared `[SetUp]` steps, scenario fixtures, and inherited parallel/lifecycle defaults. Setup must not contain conditional test-case dispatch.
 - Keep tests in explicit `//Arrange`, `//Act`, and `//Assert` sections, in that order. Set up inputs and page/component objects in Arrange, perform interactions in Act, and verify outcomes in Assert.
 - Keep all assertions and expectations in test classes, never in page or component classes. Page/component objects expose locators and interaction methods; use navigation or element waits when an interaction needs synchronization rather than hiding an expectation in a helper.
 - Preserve the user's test and method names when refactoring unless a rename is requested.
@@ -75,10 +76,11 @@ Roles and former commands are skills, not proprietary subagent definitions. Use 
 
 ### bitwarden-testing-tools
 
-| Skill                                                                        | Use when                                                    |
-| ---------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| [assessing-test-coverage](.agents/skills/assessing-test-coverage/SKILL.md)   | Assess existing automated and manual coverage for a change. |
-| [recommending-test-layers](.agents/skills/recommending-test-layers/SKILL.md) | Choose which tests belong at each layer for a change.       |
+| Skill                                                                        | Use when                                                                      |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [nunit-test-style](.agents/skills/nunit-test-style/SKILL.md)                 | Write or refactor NUnit fixtures, shared setup, and Arrange/Act/Assert tests. |
+| [assessing-test-coverage](.agents/skills/assessing-test-coverage/SKILL.md)   | Assess existing automated and manual coverage for a change.                   |
+| [recommending-test-layers](.agents/skills/recommending-test-layers/SKILL.md) | Choose which tests belong at each layer for a change.                         |
 
 ### dramaturge
 

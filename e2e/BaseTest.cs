@@ -5,7 +5,8 @@ using NUnit.Framework;
 
 namespace e2e;
 
-[NonParallelizable]
+[Parallelizable(ParallelScope.All)]
+[FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
 public abstract class BaseTest
 {
     protected abstract ClientKind Client { get; }
@@ -17,11 +18,16 @@ public abstract class BaseTest
     protected BrowserGroup Group { get; private set; } = null!;
     protected Page Page { get; private set; } = null!;
 
-    [OneTimeSetUp]
     public async Task PrepareClientAsync() => Server = await TestRuntime.Shared.PrepareAsync(Client, BrowserBuildTarget);
 
     [SetUp]
     public async Task StartClientAsync()
+    {
+        await PrepareClientAsync();
+        await LaunchClientAsync();
+    }
+
+    private async Task LaunchClientAsync()
     {
         try
         {
