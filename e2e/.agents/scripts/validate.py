@@ -168,9 +168,6 @@ def validate(args: argparse.Namespace) -> int:
                 source_path = root / item["source"]
                 check(source_path.is_file() and sha(source_path) == item["source_sha256"],
                       f"{repo}: source hash mismatch: {item['source']}")
-    check((BASE.parent / ".claude/skills").is_symlink() and
-          (BASE.parent / ".claude/skills").resolve() == (BASE / "skills").resolve(),
-          "Claude skill bridge must point to the canonical skills directory")
     check("@AGENTS.md" in (BASE.parent / "CLAUDE.md").read_text(), "Missing Claude instruction import")
     if args.refresh_hashes and not errors:
         manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
@@ -182,7 +179,7 @@ def validate(args: argparse.Namespace) -> int:
         print(f"Validation failed: {len(errors)} error(s).", file=sys.stderr)
         return 1
     print(f"Validated {len(entrypoints)} skills, {len(manifest['files'])} imported files, "
-          "catalog, links, provenance, licenses, and discovery bridges.")
+          "catalog, links, provenance, licenses, and instruction import.")
     return 0
 
 

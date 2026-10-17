@@ -10,7 +10,7 @@ Researched 2026-10-17 against the primary specifications:
 - [Client integration guidance](https://agentskills.io/client-implementation/adding-skills-support): `.agents/skills/` is a cross-client discovery convention. The specification itself does not mandate a storage location.
 - [AGENTS.md](https://agents.md/): scoped, ordinary Markdown instructions for coding agents.
 
-The canonical layout is `e2e/.agents/skills/<name>/SKILL.md`, with explicit links from `e2e/AGENTS.md`. No universal standard exists for launching subagents or installing plugin manifests. Role and command behavior is represented as ordinary skills so agents can execute it with their own capabilities. Clients without nested discovery must explicitly read the entrypoint or configure this directory. A minimal `e2e/CLAUDE.md` import and `e2e/.claude/skills` symlink provide compatibility without duplicating content. No root-level instructions or global agent settings were changed.
+The canonical layout is `e2e/.agents/skills/<name>/SKILL.md`, with explicit links from `e2e/AGENTS.md`. No universal standard exists for launching subagents or installing plugin manifests. Role and command behavior is represented as ordinary skills so agents can execute it with their own capabilities. Clients without nested discovery must explicitly read the entrypoint or configure this directory. A minimal `e2e/CLAUDE.md` import provides the entrypoint; load skills through the linked catalog in `e2e/AGENTS.md`. No root-level instructions or global agent settings were changed.
 
 ## Pinned sources and licenses
 

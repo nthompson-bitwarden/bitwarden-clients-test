@@ -4,15 +4,16 @@ using NUnit.Framework;
 
 namespace e2e.Web;
 
-[NonParallelizable]
+[Parallelizable(ParallelScope.All)]
+[FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
 public abstract class BaseTest : PageTest
 {
     protected SeededEnvironment Server { get; private set; } = null!;
     protected SeededAccount Account => Server.Accounts[nameof(ClientKind.Web)];
     protected string ServerUrl => Server.ServerUrl;
-    protected virtual bool SkipOnboarding => true;
+    protected virtual Task ConfigureOnboardingAsync() =>
+        Page.AddInitScriptAsync(WebTestState.CreateInitScript(TestRuntime.Shared.WebUrl, Account));
 
-    [OneTimeSetUp]
     public async Task PrepareClientAsync()
     {
         Server = await TestRuntime.Shared.PrepareAsync(ClientKind.Web);
@@ -22,8 +23,9 @@ public abstract class BaseTest : PageTest
     [SetUp]
     public async Task OpenWebAsync()
     {
-        if (SkipOnboarding)
-            await Page.AddInitScriptAsync(WebTestState.CreateInitScript(TestRuntime.Shared.WebUrl, Account));
+        await PrepareClientAsync();
+        await Page.SetViewportSizeAsync(1440, 1000);
+        await ConfigureOnboardingAsync();
         await Page.NavigateAsync(TestRuntime.Shared.WebUrl);
     }
 }
