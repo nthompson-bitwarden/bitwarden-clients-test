@@ -109,7 +109,7 @@ def validate(args: argparse.Namespace) -> int:
         # The experimental field is legal in the spec, but this bundle deliberately grants nothing.
         check("allowed-tools" not in meta, f"{label}: bundle must not imply execution grants")
 
-    expected_agents = {"bitwarden-software-engineer", "bitwarden-code-reviewer"}
+    expected_agents = {"bitwarden-software-engineer", "bitwarden-code-reviewer", "bitwarden-test-engineer"}
     check({p.parent.name for p in agents} == expected_agents, "Missing or unexpected agent definitions")
     for path in agents:
         name = path.parent.name
