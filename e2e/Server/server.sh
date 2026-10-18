@@ -13,13 +13,13 @@ if (( $# )); then shift; fi
 usage() {
   cat <<'EOF'
 Usage: ./e2e/Server/server.sh [command]
-  up                Clone, build, migrate, CLI-seed, and wait for the full server
-  seed [CLI args]    Run default seed once, or pass arguments to SeederUtility
-  api               Build and start the optional Seeder API
+  up                Clone, build, migrate, start Seeder API, and verify the server
+  seed [CLI args]    Run an explicit SeederUtility command
+  api               Build and start the Seeder API
   down              Stop the stack, preserving test data
   reset             Stop the stack and DELETE this stack's database and vault volumes
   status            Show containers
-  verify            Check password login and vault sync for the pre-seeded accounts
+  verify            Verify temporary Seeder API account login, vault sync, and cleanup
   logs [services]   Follow container logs
   config            Validate and print the Compose model (includes local secrets)
   help              Show this help
@@ -58,7 +58,8 @@ seed() {
   if (( $# )); then
     compose run --rm --build -T seeder-cli "$@"
   else
-    compose run --rm --build -T --entrypoint /bin/bash seeder-cli /seed-default.sh
+    echo 'Pass SeederUtility arguments, for example: server.sh seed preset --list' >&2
+    return 2
   fi
 }
 
@@ -72,16 +73,17 @@ case "$command" in
     # Never reset or pull a reused checkout: local server changes remain available for testing.
     git -C "$E2E_STATE_DIR/server" rev-parse HEAD > "$E2E_STATE_DIR/server-revision.txt"
     compose up --detach --build --wait --wait-timeout 600
-    seed
+    # nginx resolves service names at startup; refresh routes after containers change addresses.
+    compose up --detach --no-deps --force-recreate --wait --wait-timeout 120 nginx
     python3 "$SERVER_DIR/verify.py" "$E2E_STATE_DIR/test-environment.json"
-    echo "Server ready. Test URLs and seeded credentials: $E2E_STATE_DIR/test-environment.json"
+    echo "Server ready. Test service configuration: $E2E_STATE_DIR/test-environment.json"
     ;;
   seed) seed "$@" ;;
-  api) compose --profile seeder-api up --detach --build --wait --wait-timeout 600 seeder-api ;;
-  down) compose --profile seeder-api down ;;
-  reset) compose --profile seeder-api down --volumes --remove-orphans ;;
-  status) compose --profile seeder-api ps --all ;;
+  api) compose up --detach --build --wait --wait-timeout 600 seeder-api ;;
+  down) compose down ;;
+  reset) compose down --volumes --remove-orphans ;;
+  status) compose ps --all ;;
   verify) python3 "$SERVER_DIR/verify.py" "$E2E_STATE_DIR/test-environment.json" ;;
-  logs) compose --profile seeder-api logs --follow --tail 100 "$@" ;;
-  config) compose --profile seeder-api config ;;
+  logs) compose logs --follow --tail 100 "$@" ;;
+  config) compose config ;;
 esac

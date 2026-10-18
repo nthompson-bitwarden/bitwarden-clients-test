@@ -29,7 +29,6 @@ def configure(state):
             "E2E_SEEDER_PORT": os.environ.get("E2E_SEEDER_PORT", "18092"),
             "E2E_WEB_IMAGE": os.environ.get("E2E_WEB_IMAGE", "ghcr.io/bitwarden/web:2026.9.0"),
             "E2E_DB_PASSWORD": "E2e!" + secrets.token_hex(24),
-            "E2E_SEED_PASSWORD": os.environ.get("E2E_SEED_PASSWORD", "E2e-Test-Password-123!"),
             "E2E_SEEDER_API_PASSWORD": secrets.token_hex(32),
             "identity_password": secrets.token_hex(32),
             "installation_id": os.environ.get("BW_INSTALLATION_ID", str(uuid.uuid4())),
@@ -41,8 +40,6 @@ def configure(state):
                 raise ValueError(f"Invalid {key}")
         if len({settings[key] for key in ("E2E_SERVER_PORT", "E2E_MAIL_PORT", "E2E_SEEDER_PORT")}) != 3:
             raise ValueError("Server, mail, and Seeder API ports must differ")
-        if len(settings["E2E_SEED_PASSWORD"]) < 12 or any(c in settings["E2E_SEED_PASSWORD"] for c in "\r\n"):
-            raise ValueError("E2E_SEED_PASSWORD must have at least 12 characters and no newlines")
         uuid.UUID(settings["installation_id"])
         settings_path.write_text(json.dumps(settings, indent=2) + "\n")
         settings_path.chmod(0o600)
@@ -63,13 +60,22 @@ def configure(state):
         (identity / "identity.key").unlink()
 
     url = f"http://localhost:{settings['E2E_SERVER_PORT']}"
+    web_url = f"https://localhost:{os.environ.get('E2E_WEB_PORT', '18080')}"
     common = {
         "ASPNETCORE_ENVIRONMENT": "Production",
         "globalSettings__selfHosted": "true",
         "globalSettings__databaseProvider": "sqlServer",
         "globalSettings__sqlServer__connectionString":
             f"Server=mssql;Database=vault;User Id=sa;Password={settings['E2E_DB_PASSWORD']};TrustServerCertificate=true",
-        "globalSettings__baseServiceUri__vault": url,
+        "globalSettings__baseServiceUri__vault": web_url,
+        # The development vault and the released vault use the same localhost relying party.
+        "globalSettings__fido2__origins__0": url,
+        "globalSettings__fido2__origins__1": web_url,
+        # Preserve the extension origins included by the upstream default FIDO configuration.
+        "globalSettings__fido2__origins__2": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/",
+        "globalSettings__fido2__origins__3": "chrome-extension://hccnnhgbibccigepcmlgppchkpfdophk/",
+        "globalSettings__fido2__origins__4": "chrome-extension://jbkfoedolllekgbhcbcoahefnbanhhlh/",
+        "globalSettings__fido2__origins__5": "chrome-extension://ccnckbpmaceehanjmeomladnmlffdjgn/",
         "globalSettings__installation__id": settings["installation_id"],
         "globalSettings__installation__key": settings["installation_key"],
         "globalSettings__identityServer__certificatePassword": settings["identity_password"],
@@ -89,6 +95,9 @@ def configure(state):
         "globalSettings__attachment__baseUrl": f"{url}/attachments",
         "globalSettings__send__baseUrl": f"{url}/send",
     }
+    # Keep backend endpoints independent of the manually started HTTPS development vault.
+    for service in ("api", "identity", "admin", "notifications", "sso", "scim"):
+        common[f"globalSettings__baseServiceUri__{service}"] = f"{url}/{service}"
     # Development appsettings otherwise select Azurite for CLI/API attachments.
     for service in ("attachment", "send", "organizationReport", "storage", "events", "notifications"):
         common[f"globalSettings__{service}__connectionString"] = ""
@@ -100,9 +109,6 @@ def configure(state):
         "seederApiUrl": f"http://localhost:{settings['E2E_SEEDER_PORT']}",
         "seederApiUsername": "e2e",
         "seederApiPassword": settings["E2E_SEEDER_API_PASSWORD"],
-        "accounts": {client: {"email": f"e2e-{client.lower()}@example.com",
-                              "password": settings["E2E_SEED_PASSWORD"]}
-                     for client in ("Browser", "Desktop", "Web")},
     }
     (state / "test-environment.json").write_text(json.dumps(manifest, indent=2) + "\n")
     (state / "test-environment.json").chmod(0o600)

@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Dramaturge;
-using e2e.Infrastructure;
+using e2e.SeederApi;
 
 namespace e2e.Web.Tests.Onboarding;
 
@@ -18,7 +18,7 @@ internal enum OnboardingPrompt
     Walkthrough,
 }
 
-/// <summary>Controls prompt eligibility without changing the shared seeded account on the server.</summary>
+/// <summary>Controls prompt eligibility while retaining the isolated account and encrypted vault.</summary>
 internal sealed class OnboardingScenario(Page page, string serverUrl, SeededAccount account) : IDisposable
 {
     private readonly HttpClient _api = new();

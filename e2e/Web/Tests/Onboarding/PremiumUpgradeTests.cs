@@ -6,8 +6,13 @@ namespace e2e.Web.Tests.Onboarding;
 [TestFixture]
 public sealed class PremiumUpgradeTests : OnboardingTests
 {
-    protected override Task PrepareScenarioAsync() =>
-        Scenario.PrepareAsync(OnboardingPrompt.Premium);
+    protected override async Task PrepareScenarioAsync()
+    {
+        // The upsell requires at least five real ciphers, in addition to account-age eligibility.
+        for (var index = 2; index <= 5; index++)
+            await Seeds.CreateLoginAsync($"Premium scenario login {index}");
+        await Scenario.PrepareAsync(OnboardingPrompt.Premium);
+    }
 
     [TestCase("Continue without upgrading")]
     [TestCase("Close")]

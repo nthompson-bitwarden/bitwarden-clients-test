@@ -8,6 +8,9 @@ namespace e2e.Web;
 [SetUpFixture]
 public sealed class SetupFixture : DramaturgeSetUpFixture
 {
+    internal static ClientLaunchSettings Settings { get; } =
+        ClientLaunchSettings.Read("WEB", browser: BrowserKind.Chrome, headless: false);
+
     protected override BrowserLauncherBuilder ConfigureLauncher(BrowserLauncherBuilder builder) =>
-        ClientLaunchSettings.Read("WEB", browser: BrowserKind.Chrome, headless: false).CreateLauncher();
+        Settings.CreateLauncher();
 }

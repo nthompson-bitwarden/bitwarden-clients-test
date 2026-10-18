@@ -18,11 +18,9 @@ public sealed class TestRuntimeTests
         File.WriteAllText(Path.Combine(root, "manifest.json"), JsonSerializer.Serialize(new
         {
             serverUrl = "http://localhost:18090",
-            accounts = new
-            {
-                Browser = new { email = "browser@example.com", password = "test-password" },
-                Web = new { email = "web@example.com", password = "test-password" },
-            },
+            seederApiUrl = "http://localhost:18092",
+            seederApiUsername = "e2e",
+            seederApiPassword = "test-only-password",
         }));
         File.WriteAllText(Path.Combine(root, "e2e/Server/server.sh"), """
             set -eu
@@ -48,7 +46,7 @@ public sealed class TestRuntimeTests
 
         var environment = await runtime.PrepareAsync(ClientKind.Web);
 
-        Assert.That(environment.Accounts["Web"].Email, Is.EqualTo("web@example.com"));
+        Assert.That(environment.SeederApiUrl, Is.EqualTo("http://localhost:18092"));
         Assert.That(File.Exists(Path.Combine(root, "server-calls")), Is.False);
         Assert.That(File.Exists(Path.Combine(root, "build-calls")), Is.False);
         Assert.That(Directory.Exists(runtime.Logs), Is.False);
@@ -62,6 +60,22 @@ public sealed class TestRuntimeTests
         var error = Assert.ThrowsAsync<InvalidOperationException>(() => runtime.PrepareAsync(ClientKind.Web));
 
         Assert.That(error!.Message, Does.Contain("./e2e/Server/server.sh up"));
+        Assert.That(File.Exists(Path.Combine(root, "server-calls")), Is.False);
+    }
+
+    [Test]
+    public void LegacyManifestReportsSeederApiUpgradeWithoutStartingServices()
+    {
+        //Arrange
+        File.WriteAllText(Path.Combine(root, "e2e/Server/.state/test-environment.json"),
+            "{\"serverUrl\":\"http://localhost:18090\",\"accounts\":{}}");
+        var runtime = new TestRuntime(root);
+
+        //Act
+        var error = Assert.ThrowsAsync<InvalidOperationException>(() => runtime.PrepareAsync(ClientKind.Web));
+
+        //Assert
+        Assert.That(error!.Message, Does.Contain("Seeder API").And.Contain("server.sh up"));
         Assert.That(File.Exists(Path.Combine(root, "server-calls")), Is.False);
     }
 
@@ -113,7 +127,7 @@ public sealed class TestRuntimeTests
         var runtime = new TestRuntime(root);
         var environment = await runtime.PrepareAsync(ClientKind.Browser);
         Assert.That(File.ReadAllLines(Path.Combine(root, "server-calls")), Is.EqualTo(new[] { "verify" }));
-        Assert.That(environment.Accounts["Browser"].Email, Is.EqualTo("browser@example.com"));
+        Assert.That(environment.SeederApiUsername, Is.EqualTo("e2e"));
     }
 
     [Test]

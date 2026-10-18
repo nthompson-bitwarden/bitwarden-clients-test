@@ -7,7 +7,7 @@ namespace e2e.Web.Tests;
 
 public class BasicAuthenticationTests : BaseTest
 {
-    private LoginPage _loginPage;
+    private LoginPage _loginPage = null!;
 
     [SetUp]
     public void SetUp()
