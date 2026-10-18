@@ -211,17 +211,17 @@
       "repository": "bitwarden",
       "source": "plugins/bitwarden-code-review/agents/bitwarden-code-reviewer/AGENT.md",
       "source_sha256": "05c4af8df40201acbdb70aac670973d26afacc85b19e8dcc485fab4c8972bbe1",
-      "destination": "skills/bitwarden-code-reviewer/SKILL.md",
-      "kind": "role-as-skill",
-      "destination_sha256": "c27b7db10c3a791acf8c84ad394ca8b13aab997dce6244e711db6cc94abef944"
+      "destination": "agents/bitwarden-code-reviewer/AGENT.md",
+      "kind": "agent",
+      "destination_sha256": "e58d14d0fad0072348a03fc3df3f8879f1d58bd8355848a812345695820815ba"
     },
     {
       "repository": "bitwarden",
       "source": "plugins/bitwarden-code-review/agents/bitwarden-code-reviewer/references/local-mode-diff.md",
       "source_sha256": "eff09aac4c3433eb1146026a4eb0fe6271311d6320af258660378d2c2a76d01f",
-      "destination": "skills/bitwarden-code-reviewer/references/local-mode-diff.md",
+      "destination": "agents/bitwarden-code-reviewer/references/local-mode-diff.md",
       "kind": "role-resource",
-      "destination_sha256": "b2bdcbc3cc449bc16bfde055e2b549f21506e8ccc77a67438127853990da2feb"
+      "destination_sha256": "bd4840638fb4bf77e152b0f96fe001d369150c16ab60d230825244fef7e84909"
     },
     {
       "repository": "bitwarden",
@@ -229,7 +229,7 @@
       "source_sha256": "c4d829125a94d9404e5ea21791c246ad0d9208ccb6647eeb6b30899b886a801a",
       "destination": "skills/code-review/SKILL.md",
       "kind": "command-as-skill",
-      "destination_sha256": "73adcef2e09e08907d50433accbed3c195114a9d980ae35003348e9a0ccd20cd"
+      "destination_sha256": "0736225695242557a88734d954f3bc9254d1577c49572b9cd505228478dc4fd7"
     },
     {
       "repository": "bitwarden",
@@ -237,7 +237,7 @@
       "source_sha256": "5d1a7f8c11e36a1e7e5ec1e3551521bbb21c3a4b53310a8d16df9e15bfe0589d",
       "destination": "skills/code-review-local/SKILL.md",
       "kind": "command-as-skill",
-      "destination_sha256": "7baa49ff036f8d98aa1ed3b5895ecc545eadcf15aa6af8335a8ced8149d13f93"
+      "destination_sha256": "b2ee10fbe11c94dad753a5324446a2d417717e4703f8cf3a9269b1a1982f2e96"
     },
     {
       "repository": "bitwarden",
@@ -363,9 +363,9 @@
       "repository": "bitwarden",
       "source": "plugins/bitwarden-software-engineer/agents/AGENT.md",
       "source_sha256": "8252485907a15e13d088f9049eda1d3a2cd0001c9d72ab43c81530fd1ecc820c",
-      "destination": "skills/bitwarden-software-engineer/SKILL.md",
-      "kind": "role-as-skill",
-      "destination_sha256": "405f98925be3e6ee8c57363aa9d3696db7bb694313cb466f8b2f6f5c3175ac2c"
+      "destination": "agents/bitwarden-software-engineer/AGENT.md",
+      "kind": "agent",
+      "destination_sha256": "a77edbc78bd67fb869cf90451f224bdca83924baf6febd7d1a267f94d37a3144"
     },
     {
       "repository": "bitwarden",

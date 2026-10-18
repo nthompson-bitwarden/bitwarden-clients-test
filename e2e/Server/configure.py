@@ -35,14 +35,20 @@ def configure(state):
             "installation_key": os.environ.get("BW_INSTALLATION_KEY", secrets.token_hex(32)),
             "internal_key": secrets.token_hex(32),
         }
-        for key in ("E2E_SERVER_PORT", "E2E_MAIL_PORT", "E2E_SEEDER_PORT"):
-            if not 1 <= int(settings[key]) <= 65535:
-                raise ValueError(f"Invalid {key}")
-        if len({settings[key] for key in ("E2E_SERVER_PORT", "E2E_MAIL_PORT", "E2E_SEEDER_PORT")}) != 3:
-            raise ValueError("Server, mail, and Seeder API ports must differ")
-        uuid.UUID(settings["installation_id"])
-        settings_path.write_text(json.dumps(settings, indent=2) + "\n")
-        settings_path.chmod(0o600)
+    settings.setdefault("E2E_WEB_PORT", os.environ.get("E2E_WEB_PORT", "18080"))
+    ports = ("E2E_SERVER_PORT", "E2E_MAIL_PORT", "E2E_SEEDER_PORT", "E2E_WEB_PORT")
+    for key in ports:
+        if not 1 <= int(settings[key]) <= 65535:
+            raise ValueError(f"Invalid {key}")
+    if len({int(settings[key]) for key in ports}) != len(ports):
+        raise ValueError("Server, mail, Seeder API, and development Web ports must differ")
+    uuid.UUID(settings["installation_id"])
+    for key in ("E2E_DB_PASSWORD", "E2E_SEEDER_API_PASSWORD", "identity_password",
+                "installation_key", "internal_key", "E2E_WEB_IMAGE"):
+        if not isinstance(settings[key], str) or not settings[key].strip() or any(c in settings[key] for c in "\r\n"):
+            raise ValueError(f"Invalid {key}")
+    settings_path.write_text(json.dumps(settings, indent=2) + "\n")
+    settings_path.chmod(0o600)
 
     identity = state / "identity"
     identity.mkdir(exist_ok=True)
@@ -60,7 +66,7 @@ def configure(state):
         (identity / "identity.key").unlink()
 
     url = f"http://localhost:{settings['E2E_SERVER_PORT']}"
-    web_url = f"https://localhost:{os.environ.get('E2E_WEB_PORT', '18080')}"
+    web_url = f"https://localhost:{settings['E2E_WEB_PORT']}"
     common = {
         "ASPNETCORE_ENVIRONMENT": "Production",
         "globalSettings__selfHosted": "true",
@@ -110,8 +116,8 @@ def configure(state):
         "seederApiUsername": "e2e",
         "seederApiPassword": settings["E2E_SEEDER_API_PASSWORD"],
     }
-    (state / "test-environment.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    (state / "test-environment.json").chmod(0o600)
+    (state / "test-environment.pending.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    (state / "test-environment.pending.json").chmod(0o600)
 
 
 if __name__ == "__main__":

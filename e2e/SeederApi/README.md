@@ -26,12 +26,19 @@ automatically retried. A bounded Email code query is available through
 `Seeds.GetEmailCodeAsync()`; it reads the actual code issued by the server from the
 shared persistent cache without consuming it.
 
-Two-factor fixtures enroll factors through real server management endpoints,
+The shared `Authentication/TwoFactorEnrollment` helper lets Web, Browser, and Desktop
+fixtures enroll factors through real server management endpoints,
 since the exposed seed scenes do not accept two-factor provider settings. Email
 uses the code query, TOTP uses the issued secret, and WebAuthn uses a Chromium
-virtual authenticator. Firefox and Safari skip the WebAuthn test explicitly.
+virtual authenticator from `Authentication/VirtualAuthenticator`. These helpers accept
+the current test's Dramaturge page and are independent of Web page objects. Chromium
+CDP is required for the virtual authenticator; Firefox and Safari skip the WebAuthn test explicitly.
 
-Tests of the HTTP contract and failure cleanup use an in-memory handler and run
+`SeederApiClient` uses the shared [HTTP transport](../Infrastructure/Http/README.md).
+Its Basic authentication remains separate from the Bearer authentication used by
+`ServerApi/ServerApiClient` for internal management endpoints.
+
+HTTP transport and API-client contract tests in `Infrastructure/Tests/` use an in-memory handler and run
 with `--filter TestCategory=Infrastructure`. UI tests exercise the live services.
 If a runner is forcibly terminated before teardown, its play may remain; use the
 Seeder API's specific play deletion endpoint for that known play rather than

@@ -1,3 +1,4 @@
+using e2e.Authentication;
 using Dramaturge.Browsers;
 using NUnit.Framework;
 
@@ -18,7 +19,7 @@ public sealed class WebAuthnTwoFactorTests : TwoFactorAuthenticationTests
     {
         //Arrange
         if (SetupFixture.Settings.Browser is not (BrowserKind.Chrome or BrowserKind.Edge))
-            Assert.Ignore("WebAuthn virtual authenticators require Chromium CDP support.");
+            Assert.Ignore("This test's virtual authenticator uses Chromium-specific CDP commands.");
         authenticator = new VirtualAuthenticator(Page);
         await authenticator.InitializeAsync();
         await Enrollment.EnrollWebAuthnAsync(Page);

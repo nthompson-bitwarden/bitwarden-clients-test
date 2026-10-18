@@ -2,7 +2,7 @@ using System.Text.Json;
 using Dramaturge;
 using WebDriverBiDi;
 
-namespace e2e.Web.Tests.Authentication;
+namespace e2e.Authentication;
 
 /// <summary>A Chromium virtual authenticator scoped to the current test's browsing target.</summary>
 internal sealed class VirtualAuthenticator(Page page) : IAsyncDisposable

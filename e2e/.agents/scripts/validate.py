@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import tomllib
 from urllib.parse import unquote, urlsplit
 
 try:
@@ -61,8 +62,10 @@ def validate(args: argparse.Namespace) -> int:
         return path
 
     catalog = (BASE.parent / "AGENTS.md").read_text()
-    entrypoints = sorted((BASE / "skills").glob("*/SKILL.md"))
-    check(bool(entrypoints), "No discoverable skills found")
+    skills = sorted((BASE / "skills").glob("*/SKILL.md"))
+    agents = sorted((BASE / "agents").glob("*/AGENT.md"))
+    entrypoints = skills + agents
+    check(bool(skills), "No discoverable skills found")
     seen = set()
     for path in entrypoints:
         label = str(path.relative_to(BASE))
@@ -99,14 +102,30 @@ def validate(args: argparse.Namespace) -> int:
         check(isinstance(license_ref, str) and (path.parent / license_ref).is_file(),
               f"{label}: bundled license reference is missing")
         check(bool(match[2].strip()), f"{label}: empty workflow body")
-        check(f".agents/skills/{path.parent.name}/SKILL.md" in catalog, f"{label}: missing from AGENTS.md")
+        check(f".agents/{label}" in catalog, f"{label}: missing from AGENTS.md")
         check("../../PORTABILITY.md" in text, f"{label}: missing execution contract")
         if len(text.splitlines()) > 500:
             warnings.append(f"{label}: exceeds recommended 500-line entrypoint size")
         # The experimental field is legal in the spec, but this bundle deliberately grants nothing.
         check("allowed-tools" not in meta, f"{label}: bundle must not imply execution grants")
 
-    active_docs = list((BASE / "skills").rglob("*.md")) + list((BASE / "references").rglob("*.md"))
+    expected_agents = {"bitwarden-software-engineer", "bitwarden-code-reviewer"}
+    check({p.parent.name for p in agents} == expected_agents, "Missing or unexpected agent definitions")
+    for path in agents:
+        name = path.parent.name
+        adapter = BASE.parent.parent / ".codex" / "agents" / f"{name}.toml"
+        check(adapter.is_file(), f"{name}: missing Codex agent adapter")
+        check(not (BASE / "skills" / name / "SKILL.md").exists(), f"{name}: still registered as a skill")
+        if adapter.is_file():
+            config = tomllib.loads(adapter.read_text())
+            check(config.get("name") == name, f"{name}: adapter name mismatch")
+            check(bool(config.get("description")), f"{name}: missing adapter description")
+            instructions = config.get("developer_instructions", "")
+            for target in ["e2e/AGENTS.md", "e2e/.agents/PORTABILITY.md", f"e2e/.agents/agents/{name}/AGENT.md"]:
+                check(target in instructions, f"{name}: adapter must load {target}")
+
+    active_docs = (list((BASE / "skills").rglob("*.md")) + list((BASE / "agents").rglob("*.md"))
+                   + list((BASE / "references").rglob("*.md")))
     docs = active_docs + [BASE / "README.md", BASE / "PORTABILITY.md", BASE.parent / "AGENTS.md"]
     for path in docs:
         text = path.read_text()
@@ -178,7 +197,7 @@ def validate(args: argparse.Namespace) -> int:
     if errors:
         print(f"Validation failed: {len(errors)} error(s).", file=sys.stderr)
         return 1
-    print(f"Validated {len(entrypoints)} skills, {len(manifest['files'])} imported files, "
+    print(f"Validated {len(skills)} skills, {len(agents)} agents and Codex adapters, {len(manifest['files'])} imported files, "
           "catalog, links, provenance, licenses, and instruction import.")
     return 0
 

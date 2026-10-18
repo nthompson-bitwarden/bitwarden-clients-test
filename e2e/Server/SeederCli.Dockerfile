@@ -9,6 +9,11 @@ WORKDIR /source
 COPY . .
 RUN dotnet publish util/SeederUtility/SeederUtility.csproj -c Release -o /out
 
+ARG TARGETARCH
+RUN case "$TARGETARCH" in amd64) sdk_arch=x64 ;; arm64) sdk_arch=arm64 ;; *) exit 1 ;; esac \
+    && mkdir -p "/out/runtimes/linux-$sdk_arch/native" \
+    && cp util/RustSdk/rust/target/release/libsdk.so "/out/runtimes/linux-$sdk_arch/native/libsdk.so"
+
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble
 WORKDIR /app
 COPY --from=build /out .

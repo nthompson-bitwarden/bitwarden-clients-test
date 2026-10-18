@@ -128,8 +128,8 @@ and waits for temporary provisioning verification to finish. Each of those clien
   and expose locators; tests own assertions and vault readiness expectations.
   Before navigation, Web tests inject account-specific `localStorage` values for
   extension setup, welcome/upgrade dialogs, vault onboarding, and the new-experience
-  tour. The account ID comes from the current test's Seeder API response. Fixtures testing these
-  flows can override `ConfigureOnboardingAsync` with `Task.CompletedTask` and prepare their scenario in shared setup.
+  tour so authentication tests can reach the vault without unrelated prompts. The account ID
+  comes from the current test's Seeder API response.
 - **Browser:** builds the selected Chrome, Edge, or Firefox extension, launches a fresh browser per test, installs
   the unpacked extension through WebDriver BiDi, and opens its popup. `ExtensionId`
   is available to derived tests. The test chooses `ServerUrl` in the client's

@@ -1,3 +1,4 @@
+using e2e.Authentication;
 using System.Text.RegularExpressions;
 using e2e.Web.Pages;
 using NUnit.Framework;
