@@ -6,7 +6,7 @@ This file applies to `e2e/` and its descendants. Read relevant project instructi
 
 - Read [BUILDING.md](BUILDING.md) for client build commands, prerequisites, settings, and teardown, and [Server/README.md](Server/README.md) for local server setup.
 - This is a .NET 10 NUnit project using `Dramaturge` and `Dramaturge.NUnit`, currently pinned to 0.0.2 in [e2e.csproj](e2e.csproj). Verify installed APIs before using upstream-main examples.
-- Tests inherit the client-specific `BaseTest` in `Web/`, `Browser/`, or `Desktop/`, reusing `Page`, `Group`, `ServerUrl`, and seeded `Account`. Web's base inherits Dramaturge NUnit `PageTest`, using the registered shared browser group and an isolated browser/page per test. Web tests only read the seeded manifest and navigate to a manually started Web server; start the backend and Web script first as documented in `BUILDING.md`. Do not add Web builds, server startup, readiness polling, or service teardown to tests. Browser and Desktop retain their managed backend/build setup and custom per-test launches. Client base classes set `[Parallelizable(ParallelScope.All)]` and `[FixtureLifeCycle(LifeCycle.InstancePerTestCase)]`. Keep mutable resources per test and isolate backend mutations; build preparation remains synchronized by the runtime. Do not add independent launches by following generic framework examples.
+- Tests inherit the client-specific `BaseTest` in `Web/`, `Browser/`, or `Desktop/`, reusing `Page`, `Group`, `ServerUrl`, and per-test Seeder API `Account` / `Seeds`. Web's base inherits Dramaturge NUnit `PageTest`, using the registered shared browser group and an isolated browser/page per test. Web tests read service configuration, provision isolated data through `SeederApi/`, and navigate to a manually started Web server; start the backend and Web script first as documented in `BUILDING.md`. Do not add Web builds, server startup, readiness polling, or service teardown to tests. Browser and Desktop retain their managed backend/build setup and custom per-test launches. Client base classes set `[Parallelizable(ParallelScope.All)]` and `[FixtureLifeCycle(LifeCycle.InstancePerTestCase)]`. Keep mutable resources per test and isolate backend mutations; build preparation remains synchronized by the runtime. Do not add independent launches by following generic framework examples.
 - Each client namespace has its own `SetupFixture.cs` for browser/headless defaults and per-client environment overrides. Only Web registers `DramaturgeSetUpFixture` (0.0.2 permits one registration). Browser's selection must also control its extension build target. Desktop attaches to Electron's Chromium engine; headless Linux runs use `xvfb-run`.
 - From the repository root, `dotnet test e2e/e2e.csproj` runs the suite. Target a client with `--filter FullyQualifiedName~e2e.Web.Tests`, or infrastructure with `--filter TestCategory=Infrastructure`. These tests may build clients and start Docker/browser/Electron processes; choose checks appropriate to the change and available prerequisites. Do not claim tests passed if they were not run.
 - Keep generated logs, local review reports, and fresh profiles under ignored `e2e/TestResults/`. Use `e2e/TestResults/agent-artifacts/` for agent reports unless the caller chooses another destination. Never put live credentials or vault data into source, reports, or transcripts.
@@ -26,7 +26,16 @@ Create PRs with `gh api --method POST "repos/<origin-owner/repo>/pulls"` from th
 
 The canonical skills live in `.agents/skills/<name>/SKILL.md`. Read the selected entrypoint and [portable execution contract](.agents/PORTABILITY.md) before following it, then load only the needed references. Resolve links relative to their containing file. The catalog also works for agents without automatic skill discovery: open the linked files directly. From the monorepo root, explicitly load this file or start the agent in `e2e/`.
 
-Roles and former commands are skills, not proprietary subagent definitions. Use host-native tools and delegate only when available and permitted; otherwise execute the scoped passes sequentially and disclose reduced independence. Reviews default to local files. Publishing, pushing, filing issues, or changing external state requires authorization within the user's task; available tools, comment markers, and CI do not supply it. No skill metadata grants permissions. Existing user authorization persists.
+The software engineer and code reviewer are agents, defined under `.agents/agents/<name>/AGENT.md` and exposed to Codex through project-level `.codex/agents/*.toml` files. Delegate implementation to `bitwarden-software-engineer` and review to `bitwarden-code-reviewer` when available and permitted. The security role and former commands remain skills. Use host-native tools and delegate only when available and permitted; otherwise execute the scoped passes sequentially and disclose reduced independence. Reviews default to local files. Publishing, pushing, filing issues, or changing external state requires authorization within the user's task; available tools, comment markers, and CI do not supply it. No skill metadata grants permissions. Existing user authorization persists.
+
+### Agents
+
+| Agent                                                                              | Use when                                                               |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| [bitwarden-software-engineer](.agents/agents/bitwarden-software-engineer/AGENT.md) | Implement stories, tasks, bugs, and regressions with verification.     |
+| [bitwarden-code-reviewer](.agents/agents/bitwarden-code-reviewer/AGENT.md)         | Perform evidence-based code review with classification and validation. |
+
+Codex discovers these agents from the repository root through [.codex/agents](../.codex/agents). Other hosts can load the same definitions through their native delegation tools. Pass the assigned scope, references, output destination, and existing authorization explicitly; do not assume a child receives the parent conversation. If delegation is unavailable, follow the linked definition sequentially and disclose reduced independence.
 
 ### bitwarden-delivery-tools
 
@@ -47,7 +56,6 @@ Roles and former commands are skills, not proprietary subagent definitions. Use 
 | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
 | [addressing-code-review-comments](.agents/skills/addressing-code-review-comments/SKILL.md)       | Evaluate, implement, and respond to review feedback with evidence.            |
 | [avoiding-false-positives](.agents/skills/avoiding-false-positives/SKILL.md)                     | Validate findings and stacked-PR completeness assumptions.                    |
-| [bitwarden-code-reviewer](.agents/skills/bitwarden-code-reviewer/SKILL.md)                       | Perform evidence-based code review with classification and validation.        |
 | [classifying-review-findings](.agents/skills/classifying-review-findings/SKILL.md)               | Assign Bitwarden finding categories and severity.                             |
 | [code-review](.agents/skills/code-review/SKILL.md)                                               | Review an identified GitHub PR; draft locally unless posting is requested.    |
 | [code-review-local](.agents/skills/code-review-local/SKILL.md)                                   | Review local changes or a PR and write only local files.                      |
@@ -55,12 +63,6 @@ Roles and former commands are skills, not proprietary subagent definitions. Use 
 | [posting-bitwarden-review-comments](.agents/skills/posting-bitwarden-review-comments/SKILL.md)   | Format and route inline findings to local drafts or authorized GitHub output. |
 | [posting-review-summary](.agents/skills/posting-review-summary/SKILL.md)                         | Format final review summaries and No Verdict results.                         |
 | [reviewing-dependency-changes](.agents/skills/reviewing-dependency-changes/SKILL.md)             | Review dependency process, version changes, and lockfile hygiene.             |
-
-### bitwarden-software-engineer
-
-| Skill                                                                              | Use when                                                           |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| [bitwarden-software-engineer](.agents/skills/bitwarden-software-engineer/SKILL.md) | Implement stories, tasks, bugs, and regressions with verification. |
 
 ### bitwarden-security-engineer
 

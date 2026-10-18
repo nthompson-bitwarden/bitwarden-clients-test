@@ -1,6 +1,7 @@
 using Dramaturge;
 using Dramaturge.Browsers;
 using e2e.Infrastructure;
+using e2e.SeederApi;
 using NUnit.Framework;
 
 namespace e2e;
@@ -12,7 +13,8 @@ public abstract class BaseTest
     protected abstract ClientKind Client { get; }
     protected virtual string BrowserBuildTarget => "chrome";
     protected SeededEnvironment Server { get; private set; } = null!;
-    protected SeededAccount Account => Server.Accounts[Client.ToString()];
+    protected SeederSession Seeds { get; private set; } = null!;
+    protected SeededAccount Account => Seeds.Account;
     protected string ServerUrl => Server.ServerUrl;
     protected string RepositoryRoot => TestRuntime.Shared.Root;
     protected BrowserGroup Group { get; private set; } = null!;
@@ -24,6 +26,8 @@ public abstract class BaseTest
     public async Task StartClientAsync()
     {
         await PrepareClientAsync();
+        Seeds = new SeederSession(new SeederApiClient(Server.SeederSettings));
+        await Seeds.ProvisionAsync();
         await LaunchClientAsync();
     }
 
@@ -34,9 +38,10 @@ public abstract class BaseTest
             Group = await LaunchAsync();
             Page = await OpenPageAsync();
         }
-        catch
+        catch (Exception setupError)
         {
-            await StopClientAsync();
+            try { await StopClientAsync(); }
+            catch (Exception cleanupError) { throw new AggregateException("Client setup and cleanup failed.", setupError, cleanupError); }
             throw;
         }
     }
@@ -51,6 +56,14 @@ public abstract class BaseTest
     public async Task StopClientAsync()
     {
         try { if (Group is not null) await Group.DisposeAsync(); }
-        finally { await StopApplicationAsync(); Group = null!; Page = null!; }
+        finally
+        {
+            try { await StopApplicationAsync(); }
+            finally
+            {
+                Group = null!; Page = null!;
+                if (Seeds is not null) await Seeds.DisposeAsync();
+            }
+        }
     }
 }

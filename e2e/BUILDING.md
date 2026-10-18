@@ -40,14 +40,14 @@ and the existing `apps/web/config` settings, including `local.json` overrides.
 
 ## Running Web tests
 
-Start the [seeded backend](Server/README.md) from the repository root:
+Start the [local backend](Server/README.md) from the repository root:
 
 ```bash
 ./e2e/Server/server.sh up
 ```
 
 Merge the following settings into the ignored `apps/web/config/local.json` to
-route the development client to the seeded backend. Preserve any other local
+route the development client to the local backend. Preserve any other local
 settings you need. The proxy targets include the self-hosted path prefixes because
 the dev proxy strips those prefixes from incoming requests.
 
@@ -106,31 +106,30 @@ public class AuthenticationTests : e2e.Web.BaseTest
     public async Task ShowsLogin()
     {
         await Page.GetByLabel("Email address").FillAsync(Account.Email);
-        // Page is the built client; ServerUrl and Account come from the CLI seed.
+        // Page is the built client; ServerUrl comes from configuration; Account is provisioned per test through Seeder API.
     }
 }
 ```
 
 Use `e2e.Browser.BaseTest` for the extension and `e2e.Desktop.BaseTest` for Electron.
 The client base classes provide `Page`, `Group`, `ServerUrl`, and the respective
-seeded `Account.Email` / `Account.Password`. Web inherits Dramaturge NUnit's `PageTest`;
+per-test `Account.Email` / `Account.Password`. Web inherits Dramaturge NUnit's `PageTest`;
 Browser and Desktop inherit the shared `e2e.BaseTest`. Client base classes make fixtures parallelizable and create an instance per test case.
 Keep mutable state isolated per test; the runtime synchronizes shared build preparation.
 
-For Browser and Desktop, the runtime verifies all three seeded server logins and vaults.
+For Browser and Desktop, the runtime verifies temporary Seeder API provisioning, password login, vault sync, and cleanup.
 If that check fails or the server manifest is missing, it runs `Server/server.sh up`
-and waits for pre-seeding to finish. Each of those client builds runs once per test process.
+and waits for temporary provisioning verification to finish. Each of those client builds runs once per test process.
 
-- **Web:** reads the existing seeded-account manifest and navigates to the manually
+- **Web:** reads the existing service manifest, provisions a per-test Seeder API account, and navigates to the manually
   started Web server. Dramaturge `PageTest` opens an isolated browser
   and page per test within the run's shared browser group, configured to accept the
   local development certificate. Web page/component objects own login interactions
   and expose locators; tests own assertions and vault readiness expectations.
   Before navigation, Web tests inject account-specific `localStorage` values for
   extension setup, welcome/upgrade dialogs, vault onboarding, and the new-experience
-  tour. The account ID comes from server verification. For an older manifest, run
-  `./e2e/Server/server.sh verify` once to populate `userId`. Fixtures testing these
-  flows can override `ConfigureOnboardingAsync` with `Task.CompletedTask` and prepare their scenario in shared setup.
+  tour so authentication tests can reach the vault without unrelated prompts. The account ID
+  comes from the current test's Seeder API response.
 - **Browser:** builds the selected Chrome, Edge, or Firefox extension, launches a fresh browser per test, installs
   the unpacked extension through WebDriver BiDi, and opens its popup. `ExtensionId`
   is available to derived tests. The test chooses `ServerUrl` in the client's
@@ -178,3 +177,7 @@ dotnet test e2e/e2e.csproj --filter FullyQualifiedName~e2e.Web.Tests
 `DRAMATURGE_BROWSER` and `DRAMATURGE_HEADED` remain global fallbacks when the
 client-specific variable is absent. `DRAMATURGE_CHANNEL` selects the Web/extension
 release channel. Set `E2E_REPO_ROOT` if the test assembly runs outside a repository checkout.
+
+All client bases expose `Seeds`, the per-test [Seeder API session](SeederApi/README.md).
+Each session creates a verified free account and a small encrypted vault, then
+deletes its play-scoped data during teardown. Web tests do not start backend services.

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using e2e.Infrastructure;
+using e2e.SeederApi;
 
 namespace e2e.Web;
 
@@ -9,7 +9,7 @@ internal static class WebTestState
     {
         if (!Guid.TryParse(account.UserId, out var userId))
             throw new InvalidOperationException(
-                "Seeded account userId is missing or invalid. Run ./e2e/Server/server.sh verify to refresh the manifest.");
+                "Seeder API returned a missing or invalid account userId.");
 
         // Match UserKeyDefinition.buildKey and the web disk-local StateDefinitions.
         // Keep these aligned with the corresponding app services when their state changes.

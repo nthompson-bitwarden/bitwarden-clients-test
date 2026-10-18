@@ -21,6 +21,7 @@ import { AuthService } from "@bitwarden/common/auth/abstractions/auth.service";
 import { SsoLoginServiceAbstraction } from "@bitwarden/common/auth/abstractions/sso-login.service.abstraction";
 import { AuthenticationStatus } from "@bitwarden/common/auth/enums/authentication-status";
 import { AuthenticationType } from "@bitwarden/common/auth/enums/authentication-type";
+import { TwoFactorProviderType } from "@bitwarden/common/auth/enums/two-factor-provider-type";
 import { AuthResult } from "@bitwarden/common/auth/models/domain/auth-result";
 import { ForceSetPasswordReason } from "@bitwarden/common/auth/models/domain/force-set-password-reason";
 import { TokenTwoFactorRequest } from "@bitwarden/common/auth/models/request/identity-token/token-two-factor.request";
@@ -30,6 +31,7 @@ import {
   InternalMasterPasswordServiceAbstraction,
   MasterPasswordServiceAbstraction,
 } from "@bitwarden/common/key-management/master-password/abstractions/master-password.service.abstraction";
+import { ErrorResponse } from "@bitwarden/common/models/response/error.response";
 import { AppIdService } from "@bitwarden/common/platform/abstractions/app-id.service";
 import { ConfigService } from "@bitwarden/common/platform/abstractions/config/config.service";
 import { EnvironmentService } from "@bitwarden/common/platform/abstractions/environment.service";
@@ -277,6 +279,54 @@ describe("TwoFactorAuthComponent", () => {
           new TokenTwoFactorRequest(component.selectedProviderType, token, remember),
         );
       });
+
+      it.each([
+        ["email", TwoFactorProviderType.Email],
+        ["authenticator", TwoFactorProviderType.Authenticator],
+      ])(
+        "keeps the %s challenge available for retry after a rejected code",
+        async (_, provider) => {
+          // Arrange
+          component.selectedProviderType = provider;
+          component.tokenFormControl.setValue("000000");
+          component.rememberFormControl.setValue(true);
+          mockI18nService.t.mockImplementation((key) => key);
+          mockLoginStrategyService.logInTwoFactor.mockRejectedValue(
+            new ErrorResponse({ Message: "Invalid two-step token." }, 400),
+          );
+
+          // Act
+          await component.submit();
+
+          // Assert
+          expect(mockLoginStrategyService.logInTwoFactor).toHaveBeenCalledWith(
+            new TokenTwoFactorRequest(provider, "000000", true),
+          );
+          expect(mockToastService.showToast).toHaveBeenCalledWith({
+            variant: "error",
+            title: "errorOccurred",
+            message: "invalidVerificationCode",
+          });
+          expect(component.selectedProviderType).toBe(provider);
+          expect(component.tokenFormControl.enabled).toBe(true);
+          expect(component.rememberFormControl.value).toBe(true);
+          expect(mockRouter.navigate).not.toHaveBeenCalled();
+          expect(mockLoginSuccessHandlerService.run).not.toHaveBeenCalled();
+
+          // Act: edit and resubmit through the same form after rejection.
+          component.tokenFormControl.setValue("000001");
+          await component.submit();
+
+          // Assert
+          expect(mockLoginStrategyService.logInTwoFactor).toHaveBeenCalledTimes(2);
+          expect(mockLoginStrategyService.logInTwoFactor).toHaveBeenLastCalledWith(
+            new TokenTwoFactorRequest(provider, "000001", true),
+          );
+          expect(mockToastService.showToast).toHaveBeenCalledTimes(2);
+          expect(mockRouter.navigate).not.toHaveBeenCalled();
+          expect(mockLoginSuccessHandlerService.run).not.toHaveBeenCalled();
+        },
+      );
 
       describe("Set Master Password scenarios", () => {
         beforeEach(() => {

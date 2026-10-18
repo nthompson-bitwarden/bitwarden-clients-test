@@ -6,114 +6,147 @@ From the repository root:
 ./e2e/Server/server.sh up
 ```
 
-Requires Linux (or WSL), Docker with Compose v2+, Git, Python 3.10+, OpenSSL,
-and `flock` from util-linux. SQL Server requires an amd64 host or amd64 emulation.
-The first run downloads and builds the upstream server and Rust-backed seeder;
-allow several minutes and sufficient Docker memory for SQL Server and parallel builds.
-No host .NET SDK, production account, or cloud database is needed.
+Supported hosts are macOS (Apple Silicon or Intel) and Linux/WSL. Install:
 
-`up` clones `bitwarden/server` into ignored `.state/server`, checks out a pinned
-commit, builds its standard server containers, waits for Admin to migrate SQL Server,
-starts the other services, and runs **SeederUtility** before reporting success.
-It then verifies password login and vault sync for all three seeded accounts.
+- Docker Desktop on macOS, or Docker Engine on Linux/WSL, with Compose v2+ and Buildx.
+  Start Docker and select Linux containers before running the command.
+- Git, Python 3.10+, OpenSSL, and Bash. No host .NET SDK, Rust toolchain, Node,
+  `flock`, or pre-existing server checkout is needed for server startup.
+- On ARM64, working AMD64 container emulation for SQL Server. Application and
+  Seeder containers build natively for the Docker host architecture. Docker
+  Desktop must have AMD64 emulation enabled; Linux ARM64 needs equivalent binfmt
+  support configured by the machine administrator.
+
+The first run downloads source, images, and build dependencies. Allow several
+minutes, adequate Docker disk space, and sufficient Docker memory. Startup builds
+at most two application images at a time to avoid running all server compilers
+concurrently in a developer Docker VM. Prerequisite checks run before installation
+configuration is generated; missing tools and an
+unavailable daemon produce actionable errors.
+
+`up` fetches the pinned `bitwarden/server` revision into a staging directory and
+only publishes a complete checkout as ignored `.state/server`. It validates the
+required source projects, builds their containers, and waits for Admin to migrate SQL Server before
+starting the other services. Seeder API is included in normal startup. Verification
+creates a temporary account and encrypted vault through Seeder API, checks real
+password login and sync, then deletes the play's data. Only successful verification
+atomically publishes `.state/test-environment.json`. A failed `up` removes any old
+readiness manifest; generated settings, certificates, and database data remain
+available for a retry.
+
 The stack includes API, Identity, Admin, SSO, SCIM, events, notifications, icons,
-attachments, a released web vault, and a local SMTP mail catcher. Its network,
-container names, and database/key volumes are separate from other installations.
+attachments, a released web vault, and a local SMTP mail catcher. Its network and
+volumes are separate from other installations.
 
-The default endpoints are:
-
-| Service                        | URL                               |
+| Service                        | Default URL                       |
 | ------------------------------ | --------------------------------- |
 | Web vault / self-hosted server | `http://localhost:18090`          |
 | API                            | `http://localhost:18090/api`      |
 | Identity                       | `http://localhost:18090/identity` |
 | Captured email                 | `http://localhost:18091`          |
-| Optional Seeder API            | `http://localhost:18092`          |
+| Seeder API                     | `http://localhost:18092`          |
 
-Host ports bind to loopback. HTTP on localhost provides a browser secure context;
-use this installation from local clients. Remote devices need a trusted HTTPS
-proxy and matching server URL configuration.
+Host ports bind to loopback. HTTP on localhost provides a browser secure context.
+Remote devices need a trusted HTTPS proxy and matching server URL configuration.
 
-## Pre-seeded accounts
+## Per-test data
 
-Startup invokes the CLI's `individual --subscription free --vault` command for
-each client, with PBKDF2 set to 600,000 iterations. Each account starts with roughly
-75 personal vault items and folders; generated item contents may vary between resets.
+The [shared Seeder API client](../SeederApi/README.md) creates an isolated account
+and encrypted vault data for each UI test. There are no persistent default test
+accounts. Tests read service URLs and Seeder API credentials from
+`.state/test-environment.json`, available after `up` succeeds. Generated credentials
+and decrypted key material must not appear in source or reports.
 
-| Client  | Email                     | Default master password  |
-| ------- | ------------------------- | ------------------------ |
-| Browser | `e2e-browser@example.com` | `E2e-Test-Password-123!` |
-| Desktop | `e2e-desktop@example.com` | `E2e-Test-Password-123!` |
-| Web     | `e2e-web@example.com`     | `E2e-Test-Password-123!` |
+The client sends a unique `X-Play-Id` for each test and deletes that play during
+teardown. Seeder API shares the server's database, attachment storage, ASP.NET Data
+Protection keys, and SQL-backed persistent cache. The shared cache is required for
+Email two-factor code queries.
 
-Tests can read `.state/test-environment.json` for the actual server URL and
-credentials. This file is ready for use **after `up` succeeds**. Tests do not need
-a Seeder API client. The CLI and server share database settings, attachment storage,
-and ASP.NET Data Protection keys so vault contents are encrypted for real client use.
-Verification also records each account's `userId` in the manifest so Web tests can
-inject account-specific onboarding dismissal state before loading the client.
-
-Default seeding runs once per database. Repeated `up` or `seed` preserves accounts
-and test changes. If seeding fails halfway through, startup fails and asks for a
-reset rather than duplicating accounts. For a clean run:
+Existing databases can be reused without a reset. Old CLI-seeded accounts and
+markers are ignored and left intact. `up` and `verify` no longer depend on them.
+For a deliberately clean installation:
 
 ```bash
 ./e2e/Server/server.sh reset # Deletes this stack's database and core/key volumes
 ./e2e/Server/server.sh up
 ```
 
-To add data with any upstream CLI command, pass its arguments directly:
+## Manual CLI seeding
+
+Explicit upstream CLI commands remain available independently of test provisioning:
 
 ```bash
 ./e2e/Server/server.sh seed preset --list
-./e2e/Server/server.sh seed preset --name dev.playground
 ./e2e/Server/server.sh seed individual --subscription free \
   --first-name Test --last-name Extra --email extra@example.com --vault
 ```
 
-These commands run against the same database and do not clear existing data.
-Use unique identities or the upstream `--mangle` flag when repeatedly adding data.
-Premium and organization license scenarios require the upstream development signing
-certificate/configuration; the default free accounts do not require licenses.
-
-## Optional Seeder API
-
-```bash
-./e2e/Server/server.sh api
-```
-
-The API stays off during normal startup. When enabled, it shares the same database,
-keys, and SQL-backed distributed cache as the server. Its Basic Auth username and
-generated password are in `test-environment.json`. Use upstream `/seed` and `/query`
-endpoints with an `X-Play-Id` header for per-run cleanup. No API wrapper is needed
-for the default CLI-seeded accounts.
+These commands do not clear existing data. Use unique identities or `--mangle`
+when adding data repeatedly. Premium and organization license scenarios require
+the upstream development signing certificate/configuration; normal tests use free
+accounts.
 
 ## Configuration and lifecycle
 
 Before the **first** `up`, optional environment variables are:
 
 - `E2E_SERVER_PORT`, `E2E_MAIL_PORT`, `E2E_SEEDER_PORT`: default `18090`, `18091`, `18092`.
-- `E2E_SEED_PASSWORD`: override the default test master password.
-- `E2E_SERVER_REF`: server commit/tag to check out; default is pinned in `server.sh`.
+  These ports and the development Web port must be distinct and in the range 1–65535.
+- `E2E_WEB_PORT`: development vault port, default `18080`; its HTTPS localhost
+  URL is the configured vault URL, providing the HTTPS AppID required by WebAuthn.
+  Both vault origins are allowed, and API/Identity retain their backend URLs. Use the same port
+  in the test runner and Web configuration. It is persisted with the other ports;
+  edit `settings.json` and rerun `up` when changing it.
+- `E2E_SERVER_REF`: server commit/tag; the default is pinned in `server.py`.
 - `E2E_WEB_IMAGE`: released web image; default `ghcr.io/bitwarden/web:2026.9.0`.
-- `BW_INSTALLATION_ID`, `BW_INSTALLATION_KEY`: optional real installation credentials.
-  Local generated placeholders support offline tests; cloud-dependent functionality
-  such as push relay or license synchronization needs real installation credentials.
+- `BW_INSTALLATION_ID`, `BW_INSTALLATION_KEY`: real installation credentials for
+  cloud-dependent functionality. Local placeholders support offline tests.
 
-Settings persist in ignored `.state/settings.json` so restarts retain database
-passwords and signing keys. To change saved settings, stop the stack, edit that
-file, and run `up`; changing database or seed passwords requires `reset`. Keep the
-generated signing-certificate password unchanged. The checkout is
-preserved without automatic pulls/resets, so local server edits can be tested.
-Its actual commit is recorded in `.state/server-revision.txt`.
+`E2E_STATE_DIR` optionally selects an absolute or working-directory-relative state
+directory; it defaults to `e2e/Server/.state`. `E2E_COMPOSE_PROJECT` selects the
+Docker project name, default `bitwarden-e2e`. Use the same pair for every lifecycle
+command. Separate installations need separate state directories, project names,
+and host ports. State contains secrets: keep custom locations private and ignored.
+Concurrent mutating commands and verification are locked per state directory using
+Python's standard library on both macOS and Linux.
+
+Settings persist in ignored `.state/settings.json`. To change saved settings,
+stop the stack, edit that file, and run `up`. Changing database credentials requires
+a reset. Preserve the generated signing-certificate password. The server checkout
+is reused without automatic pulls/resets; its commit is recorded in
+`.state/server-revision.txt`.
 
 ```bash
+./e2e/Server/server.sh api    # Build/start Seeder API independently
 ./e2e/Server/server.sh status
-./e2e/Server/server.sh verify # Repeat password-login and vault-sync smoke checks
-./e2e/Server/server.sh logs api identity
-./e2e/Server/server.sh down # Preserves database, seeded data, and encryption keys
+./e2e/Server/server.sh verify # Temporary provisioning/login/sync/cleanup smoke check
+./e2e/Server/server.sh logs api identity seeder-api
+./e2e/Server/server.sh down   # Preserves database and encryption keys
 ```
 
-Upstream references: [Seeder CLI](https://github.com/bitwarden/server/tree/main/util/SeederUtility),
-[Seeder API](https://github.com/bitwarden/server/tree/main/util/SeederApi),
-[standard self-hosted services](https://github.com/bitwarden/server/blob/main/util/Setup/Templates/DockerCompose.hbs).
+## Recovery and validation
+
+If startup fails, read its error, then use `status` and service-specific `logs`.
+Fix the reported dependency, port, source, build, or health problem and rerun `up`.
+A retry reuses generated credentials, the signing certificate, the completed
+server checkout, and existing Docker volumes. It does not reset a database or
+replace a developer checkout. An incomplete existing `.state/server` is rejected:
+preserve local edits and move that directory aside before retrying. An interrupted
+initial fetch may leave `.server-clone-*` staging directories; these are not reused
+and can be removed after ensuring no startup command is running.
+
+Do not run `reset` to recover a build failure. It explicitly deletes this project's
+database and vault volumes and removes the readiness manifest. `config` intentionally
+prints local secrets; do not paste its output into reports.
+
+Run bootstrap unit tests without Docker:
+
+```bash
+python3 -m unittest discover -s e2e/Server/tests -v
+```
+
+For a genuine first-install check, use a new state directory under ignored
+`e2e/TestResults/`, a unique project name, and three unused host ports. Run `up`,
+`verify`, `up` again, `down`, then `up` and `verify` again. Keep the same environment
+for all commands. Finish with `reset` for that isolated project only. A source or
+unit-test pass does not establish container startup or provisioning acceptance.

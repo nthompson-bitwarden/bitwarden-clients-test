@@ -1,11 +1,14 @@
 using System.Text.Json;
+using e2e.SeederApi;
 
 namespace e2e.Infrastructure;
 
 public enum ClientKind { Browser, Desktop, Web }
 
-public sealed record SeededAccount(string Email, string Password, string? UserId = null);
-public sealed record SeededEnvironment(string ServerUrl, Dictionary<string, SeededAccount> Accounts);
+public sealed record SeededEnvironment(string ServerUrl, string SeederApiUrl, string SeederApiUsername, string SeederApiPassword)
+{
+    public SeederApiSettings SeederSettings => new(SeederApiUrl, SeederApiUsername, SeederApiPassword);
+}
 
 internal sealed class TestRuntime
 {
@@ -34,7 +37,7 @@ internal sealed class TestRuntime
         {
             if (server is null)
             {
-                // Verification checks all seeded logins and vaults, not merely an open port.
+                // Verification creates and cleans up an isolated Seeder API account and vault.
                 if (!File.Exists(Manifest) || await RunAsync("server-verify", "bash",
                     ["e2e/Server/server.sh", "verify"], TimeSpan.FromMinutes(2)) != 0)
                     await RequireAsync("server-up", "bash", ["e2e/Server/server.sh", "up"]);
@@ -58,10 +61,16 @@ internal sealed class TestRuntime
         finally { gate.Release(); }
     }
 
-    private async Task<SeededEnvironment> ReadEnvironmentAsync() =>
-        JsonSerializer.Deserialize<SeededEnvironment>(await File.ReadAllTextAsync(Manifest),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-        ?? throw new InvalidOperationException($"Invalid server manifest: {Manifest}");
+    private async Task<SeededEnvironment> ReadEnvironmentAsync()
+    {
+        var environment = JsonSerializer.Deserialize<SeededEnvironment>(await File.ReadAllTextAsync(Manifest),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        if (environment is null || !Uri.TryCreate(environment.ServerUrl, UriKind.Absolute, out _) ||
+            !Uri.TryCreate(environment.SeederApiUrl, UriKind.Absolute, out _) ||
+            string.IsNullOrWhiteSpace(environment.SeederApiUsername) || string.IsNullOrWhiteSpace(environment.SeederApiPassword))
+            throw new InvalidOperationException("Server manifest is missing Seeder API configuration. Run ./e2e/Server/server.sh up.");
+        return environment;
+    }
 
     internal async Task<int> RunAsync(string name, string executable, string[] arguments, TimeSpan timeout)
     {

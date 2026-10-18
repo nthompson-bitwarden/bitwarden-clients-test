@@ -26,22 +26,22 @@ You are not the tech lead, the architect, or the EM. Architectural judgment beyo
 
 ## Verification
 
-For this repository's e2e tests, follow [NUnit test style](../nunit-test-style/SKILL.md) for shared setup without logic and inherited parallel/instance-per-test-case defaults:
+For this repository's e2e tests, follow [NUnit test style](../../skills/nunit-test-style/SKILL.md) for shared setup without logic and inherited parallel/instance-per-test-case defaults:
 
 - Use explicit `//Arrange`, `//Act`, and `//Assert` sections in that order: prepare inputs and page/component objects, perform interactions, then verify outcomes.
 - Put assertions and expectations in test classes only. Page/component classes expose locators and interactions without assertions or expectations. Synchronize interactions with navigation or element waits.
 - Preserve the user's existing test and method names unless a rename is requested.
 
-Before declaring done, run [perform-preflight](../perform-preflight/SKILL.md) or follow the repo's `AGENTS.md` and verification skills. Repo-level guidance is the canonical source for build, lint, format, and test commands.
+Before declaring done, run [perform-preflight](../../skills/perform-preflight/SKILL.md) or follow the repo's `AGENTS.md` and verification skills. Repo-level guidance is the canonical source for build, lint, format, and test commands.
 
 ## Cross-Plugin Integration
 
 These skills are available across plugins and agent-neutral by design — invoke them when the work calls for them:
 
-- **Delivery lifecycle** (`bitwarden-delivery-tools`): [committing-changes](../committing-changes/SKILL.md), [creating-pull-request](../creating-pull-request/SKILL.md), [perform-preflight](../perform-preflight/SKILL.md), [labeling-changes](../labeling-changes/SKILL.md).
+- **Delivery lifecycle** (`bitwarden-delivery-tools`): [committing-changes](../../skills/committing-changes/SKILL.md), [creating-pull-request](../../skills/creating-pull-request/SKILL.md), [perform-preflight](../../skills/perform-preflight/SKILL.md), [labeling-changes](../../skills/labeling-changes/SKILL.md).
 - **Jira/Confluence** (`bitwarden-atlassian-tools`): `researching-jira-issues` (optional external skill; see the portability guide) when picking up a story.
 - **Security** (`bitwarden-security-engineer`, when installed):
-  - [reviewing-security-architecture](../reviewing-security-architecture/SKILL.md) before implementing auth/crypto/access-control.
-  - [analyzing-code-security](../analyzing-code-security/SKILL.md) when handling user input that reaches SQL, HTML, the file system, or URLs.
-  - [reviewing-dependencies](../reviewing-dependencies/SKILL.md) when adding or updating dependencies.
-  - [detecting-secrets](../detecting-secrets/SKILL.md) when working with secrets or configuration.
+  - [reviewing-security-architecture](../../skills/reviewing-security-architecture/SKILL.md) before implementing auth/crypto/access-control.
+  - [analyzing-code-security](../../skills/analyzing-code-security/SKILL.md) when handling user input that reaches SQL, HTML, the file system, or URLs.
+  - [reviewing-dependencies](../../skills/reviewing-dependencies/SKILL.md) when adding or updating dependencies.
+  - [detecting-secrets](../../skills/detecting-secrets/SKILL.md) when working with secrets or configuration.
