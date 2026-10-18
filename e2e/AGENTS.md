@@ -28,7 +28,7 @@ Create PRs with `gh api --method POST "repos/<origin-owner/repo>/pulls"` from th
 
 The canonical skills live in `.agents/skills/<name>/SKILL.md`. Read the selected entrypoint and [portable execution contract](.agents/PORTABILITY.md) before following it, then load only the needed references. Resolve links relative to their containing file. The catalog also works for agents without automatic skill discovery: open the linked files directly. From the monorepo root, explicitly load this file or start the agent in `e2e/`.
 
-The software engineer and code reviewer are agents, defined under `.agents/agents/<name>/AGENT.md` and exposed to Codex through project-level `.codex/agents/*.toml` files. Delegate implementation to `bitwarden-software-engineer` and review to `bitwarden-code-reviewer` when available and permitted. The security role and former commands remain skills. Use host-native tools and delegate only when available and permitted; otherwise execute the scoped passes sequentially and disclose reduced independence. Reviews default to local files. Publishing, pushing, filing issues, or changing external state requires authorization within the user's task; available tools, comment markers, and CI do not supply it. No skill metadata grants permissions. Existing user authorization persists.
+The software engineer, code reviewer, and test engineer are agents, defined under `.agents/agents/<name>/AGENT.md` and exposed to Codex through project-level `.codex/agents/*.toml` files. Delegate implementation to `bitwarden-software-engineer`, review to `bitwarden-code-reviewer`, and approval-gated test planning and delivery to `bitwarden-test-engineer` when available and permitted. The security role and former commands remain skills. Use host-native tools and delegate only when available and permitted; otherwise execute the scoped passes sequentially and disclose reduced independence. Reviews default to local files. Publishing, pushing, filing issues, or changing external state requires authorization within the user's task; available tools, comment markers, and CI do not supply it. No skill metadata grants permissions. Existing user authorization persists.
 
 ### Agents
 
@@ -36,6 +36,7 @@ The software engineer and code reviewer are agents, defined under `.agents/agent
 | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | [bitwarden-software-engineer](.agents/agents/bitwarden-software-engineer/AGENT.md) | Implement stories, tasks, bugs, and regressions with verification.     |
 | [bitwarden-code-reviewer](.agents/agents/bitwarden-code-reviewer/AGENT.md)         | Perform evidence-based code review with classification and validation. |
+| [bitwarden-test-engineer](.agents/agents/bitwarden-test-engineer/AGENT.md)         | Plan test additions, obtain approval, and delegate implementation.     |
 
 Codex discovers these agents from the repository root through [.codex/agents](../.codex/agents). Other hosts can load the same definitions through their native delegation tools. Pass the assigned scope, references, output destination, and existing authorization explicitly; do not assume a child receives the parent conversation. If delegation is unavailable, follow the linked definition sequentially and disclose reduced independence.
 
@@ -80,11 +81,12 @@ Codex discovers these agents from the repository root through [.codex/agents](..
 
 ### bitwarden-testing-tools
 
-| Skill                                                                        | Use when                                                                      |
-| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [nunit-test-style](.agents/skills/nunit-test-style/SKILL.md)                 | Write or refactor NUnit fixtures, shared setup, and Arrange/Act/Assert tests. |
-| [assessing-test-coverage](.agents/skills/assessing-test-coverage/SKILL.md)   | Assess existing automated and manual coverage for a change.                   |
-| [recommending-test-layers](.agents/skills/recommending-test-layers/SKILL.md) | Choose which tests belong at each layer for a change.                         |
+| Skill                                                                        | Use when                                                                                  |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [nunit-test-style](.agents/skills/nunit-test-style/SKILL.md)                 | Write or refactor NUnit fixtures, shared setup, and Arrange/Act/Assert tests.             |
+| [assessing-test-coverage](.agents/skills/assessing-test-coverage/SKILL.md)   | Assess existing automated and manual coverage for a change.                               |
+| [recommending-test-layers](.agents/skills/recommending-test-layers/SKILL.md) | Choose which tests belong at each layer for a change.                                     |
+| [test-planner](.agents/skills/test-planner/SKILL.md)                         | Combine coverage assessment and layer recommendations into a concrete test-addition plan. |
 
 ### dramaturge
 
