@@ -15,6 +15,8 @@ This file applies to `e2e/` and its descendants. Read relevant project instructi
 
 - Follow [nunit-test-style](.agents/skills/nunit-test-style/SKILL.md) for straight-line shared `[SetUp]` steps, scenario fixtures, and inherited parallel/lifecycle defaults. Setup must not contain conditional test-case dispatch.
 - Keep tests in explicit `//Arrange`, `//Act`, and `//Assert` sections, in that order. Set up inputs and page/component objects in Arrange, perform interactions in Act, and verify outcomes in Assert.
+- When an Arrange, Act, or Assert block contains multiple logical stages, separate those stages with descriptive, unnumbered substep comments, such as `// Act - Rotate the API key` and `// Act - Retrieve the key after reloading`. Keep the main section markers above; name the purpose of each stage rather than using numbered steps.
+- Name variables, fields, properties, and parameters that hold custom page objects with a `Page` suffix and custom component objects with a `Component` suffix, including aliases and assignment targets. For example, use `var vaultPage = new VaultPage(Page)`, `_loginPage`, `SecurityKeysPage`, and `LoginFormComponent`; use `var apiKeyDialogComponent = new ApiKeyDialog(Page)` for a component. This rule does not apply to raw Dramaturge `Page` instances or element locators.
 - Keep all assertions and expectations in test classes, never in page or component classes. Page/component objects expose locators and interaction methods; use navigation or element waits when an interaction needs synchronization rather than hiding an expectation in a helper.
 - Preserve the user's test and method names when refactoring unless a rename is requested.
 

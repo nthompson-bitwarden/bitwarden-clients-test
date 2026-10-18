@@ -18,10 +18,10 @@ public sealed class EmailTwoFactorTests : TwoFactorAuthenticationTests
         var issuedCode = new Regex(@"/api/two-factor/send-email-login(?:[?]|$)");
 
         //Act
-        await Page.RunAndWaitForResponseAsync(() => Login.Form.SubmitAsync(Account.Email, Account.Password), issuedCode);
-        await Challenge.VerificationCode.WaitForAsync();
+        await Page.RunAndWaitForResponseAsync(() => LoginPage.LoginFormComponent.SubmitAsync(Account.Email, Account.Password), issuedCode);
+        await TwoFactorPage.VerificationCode.WaitForAsync();
         var code = await Seeds.GetEmailCodeAsync();
-        await Challenge.SubmitCodeAsync(code);
+        await TwoFactorPage.SubmitCodeAsync(code);
 
         //Assert
         await AssertVaultIsUnlockedAsync();
@@ -34,11 +34,11 @@ public sealed class EmailTwoFactorTests : TwoFactorAuthenticationTests
         var issuedCode = new Regex(@"/api/two-factor/send-email-login(?:[?]|$)");
 
         //Act
-        await Page.RunAndWaitForResponseAsync(() => Login.Form.SubmitAsync(Account.Email, Account.Password), issuedCode);
-        await Challenge.VerificationCode.WaitForAsync();
+        await Page.RunAndWaitForResponseAsync(() => LoginPage.LoginFormComponent.SubmitAsync(Account.Email, Account.Password), issuedCode);
+        await TwoFactorPage.VerificationCode.WaitForAsync();
         var code = await Seeds.GetEmailCodeAsync();
         var invalidCode = code == "000000" ? "000001" : "000000";
-        await Challenge.SubmitCodeAsync(invalidCode);
+        await TwoFactorPage.SubmitCodeAsync(invalidCode);
 
         //Assert
         await AssertCodeWasRejectedAsync();

@@ -24,10 +24,10 @@ public sealed class WebAuthnTwoFactorTests : TwoFactorAuthenticationTests
         await authenticator.InitializeAsync();
         await Enrollment.EnrollWebAuthnAsync(Page);
         var signatureCount = await authenticator.GetSignatureCountAsync();
-        var form = Login.Form;
+        var loginFormComponent = LoginPage.LoginFormComponent;
 
         //Act
-        await form.SubmitAsync(Account.Email, Account.Password);
+        await loginFormComponent.SubmitAsync(Account.Email, Account.Password);
 
         //Assert
         await AssertVaultIsUnlockedAsync();

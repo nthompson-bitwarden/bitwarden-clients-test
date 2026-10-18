@@ -19,15 +19,15 @@ public class BasicAuthenticationTests : BaseTest
     public async Task LogIn_WithValidCredentials_IsSuccessful()
     {
         //Arrange
-        var vault = new VaultPage(Page);
+        var vaultPage = new VaultPage(Page);
 
         //Act
-        await _loginPage.Form.SubmitAsync(Account.Email, Account.Password);
+        await _loginPage.LoginFormComponent.SubmitAsync(Account.Email, Account.Password);
 
         //Assert
         await Expect(Page).ToHaveUrlAsync(new Regex(@"/#/vault(?:[/?]|$)"));
-        await Expect(vault.ItemsTable).ToBeVisibleAsync();
-        await Expect(vault.MasterPassword).Not.ToBeVisibleAsync();
+        await Expect(vaultPage.ItemsTable).ToBeVisibleAsync();
+        await Expect(vaultPage.MasterPassword).Not.ToBeVisibleAsync();
     }
 
     [Test]
@@ -37,12 +37,12 @@ public class BasicAuthenticationTests : BaseTest
         var invalidPassword = Account.Password + "-incorrect";
 
         //Act
-        await _loginPage.Form.SubmitAsync(Account.Email, invalidPassword);
+        await _loginPage.LoginFormComponent.SubmitAsync(Account.Email, invalidPassword);
 
         //Assert
-        await Expect(_loginPage.Form.InvalidPassword).ToBeVisibleAsync();
-        await Expect(_loginPage.Form.MasterPassword).ToBeVisibleAsync();
-        await Expect(_loginPage.Form.LogInButton).ToBeEnabledAsync();
+        await Expect(_loginPage.LoginFormComponent.InvalidPassword).ToBeVisibleAsync();
+        await Expect(_loginPage.LoginFormComponent.MasterPassword).ToBeVisibleAsync();
+        await Expect(_loginPage.LoginFormComponent.LogInButton).ToBeEnabledAsync();
         await Expect(Page).ToHaveUrlAsync(new Regex(@"/#/login(?:[?]|$)"));
     }
 }

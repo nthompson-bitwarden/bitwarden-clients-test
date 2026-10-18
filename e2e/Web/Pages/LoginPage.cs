@@ -5,5 +5,5 @@ namespace e2e.Web.Pages;
 
 public sealed class LoginPage(Page page)
 {
-    public LoginForm Form { get; } = new(page);
+    public LoginForm LoginFormComponent { get; } = new(page);
 }
