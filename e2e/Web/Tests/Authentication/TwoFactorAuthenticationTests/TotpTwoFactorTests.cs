@@ -14,11 +14,11 @@ public sealed class TotpTwoFactorTests : TwoFactorAuthenticationTests
     public async Task LogIn_WithAuthenticatorCode_IsSuccessful()
     {
         //Arrange
-        var challenge = Challenge;
+        var twoFactorPage = TwoFactorPage;
 
         //Act
-        await Login.Form.SubmitAsync(Account.Email, Account.Password);
-        await challenge.SubmitCodeAsync(Enrollment.LoginTotpCode());
+        await LoginPage.LoginFormComponent.SubmitAsync(Account.Email, Account.Password);
+        await twoFactorPage.SubmitCodeAsync(Enrollment.LoginTotpCode());
 
         //Assert
         await AssertVaultIsUnlockedAsync();
@@ -31,8 +31,8 @@ public sealed class TotpTwoFactorTests : TwoFactorAuthenticationTests
         var invalidCode = Enrollment.InvalidTotpCode();
 
         //Act
-        await Login.Form.SubmitAsync(Account.Email, Account.Password);
-        await Challenge.SubmitCodeAsync(invalidCode);
+        await LoginPage.LoginFormComponent.SubmitAsync(Account.Email, Account.Password);
+        await TwoFactorPage.SubmitCodeAsync(invalidCode);
 
         //Assert
         await AssertCodeWasRejectedAsync();

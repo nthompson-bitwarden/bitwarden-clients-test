@@ -9,16 +9,16 @@ namespace e2e.Web.Tests.Authentication;
 public abstract class TwoFactorAuthenticationTests : BaseTest
 {
     private protected TwoFactorEnrollment Enrollment = null!;
-    protected LoginPage Login = null!;
-    protected TwoFactorPage Challenge = null!;
-    protected VaultPage Vault = null!;
+    protected LoginPage LoginPage = null!;
+    protected TwoFactorPage TwoFactorPage = null!;
+    protected VaultPage VaultPage = null!;
 
     [SetUp]
     public async Task PrepareFactorAsync()
     {
-        Login = new LoginPage(Page);
-        Challenge = new TwoFactorPage(Page);
-        Vault = new VaultPage(Page);
+        LoginPage = new LoginPage(Page);
+        TwoFactorPage = new TwoFactorPage(Page);
+        VaultPage = new VaultPage(Page);
         Enrollment = new TwoFactorEnrollment(ServerUrl, Seeds);
         await Enrollment.AuthenticateAsync();
     }
@@ -29,17 +29,17 @@ public abstract class TwoFactorAuthenticationTests : BaseTest
     protected async Task AssertVaultIsUnlockedAsync()
     {
         await Expect(Page).ToHaveUrlAsync(new Regex(@"/#/vault(?:[/?]|$)"));
-        await Expect(Vault.ItemsTable).ToBeVisibleAsync();
+        await Expect(VaultPage.ItemsTable).ToBeVisibleAsync();
         await Expect(Page.GetByText("E2E login", exact: true)).ToBeVisibleAsync();
-        await Expect(Vault.MasterPassword).Not.ToBeVisibleAsync();
+        await Expect(VaultPage.MasterPassword).Not.ToBeVisibleAsync();
     }
 
     protected async Task AssertCodeWasRejectedAsync()
     {
-        await Expect(Challenge.InvalidCode).ToBeVisibleAsync();
-        await Expect(Challenge.VerificationCode).ToBeVisibleAsync();
-        await Expect(Challenge.ContinueButton).ToBeEnabledAsync();
-        await Expect(Vault.ItemsTable).Not.ToBeVisibleAsync();
+        await Expect(TwoFactorPage.InvalidCode).ToBeVisibleAsync();
+        await Expect(TwoFactorPage.VerificationCode).ToBeVisibleAsync();
+        await Expect(TwoFactorPage.ContinueButton).ToBeEnabledAsync();
+        await Expect(VaultPage.ItemsTable).Not.ToBeVisibleAsync();
         await Expect(Page).ToHaveUrlAsync(new Regex(@"/#/2fa(?:[/?]|$)"));
     }
 }
