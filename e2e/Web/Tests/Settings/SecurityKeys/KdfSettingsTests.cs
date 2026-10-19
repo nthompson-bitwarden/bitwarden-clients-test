@@ -1,10 +1,37 @@
+using e2e.Web.Components;
+using e2e.Web.Pages;
 using NUnit.Framework;
 using static Dramaturge.Assertions;
 
 namespace e2e.Web.Tests.Settings.SecurityKeys;
 
-public class KdfSettingsTests : SecurityKeysTestsBase
+public class KdfSettingsTests : BaseTest
 {
+    private SecurityKeysPage SecurityKeysPage { get; set; } = null!;
+    private VaultPage VaultPage { get; set; } = null!;
+    private LoginPage LoginPage { get; set; } = null!;
+    private KdfConfirmationDialog KdfConfirmationDialogComponent { get; set; } = null!;
+
+    public KdfSettingsTests()
+    {
+        // These journeys reveal credentials and decrypted vault data, including on failure paths.
+        ScreenshotOnFailure = false;
+        VideoOnFailure = false;
+        TraceOnFailure = false;
+    }
+
+    [SetUp]
+    public async Task OpenSecurityKeysAsync()
+    {
+        SecurityKeysPage = new SecurityKeysPage(Page);
+        VaultPage = new VaultPage(Page);
+        LoginPage = new LoginPage(Page);
+        KdfConfirmationDialogComponent = new KdfConfirmationDialog(Page);
+        await LoginPage.LoginFormComponent.SubmitAsync(Account.Email, Account.Password);
+        await VaultPage.ItemsTable.WaitForAsync();
+        await SecurityKeysPage.OpenAsync();
+    }
+
     [Test]
     public async Task UpdatePbkdf2Settings_AfterFreshLogin_PreservesVaultAndParameters()
     {

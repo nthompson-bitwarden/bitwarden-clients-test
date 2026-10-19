@@ -10,14 +10,14 @@ Read [the portability guide](../../PORTABILITY.md) and [e2e instructions](../../
 
 - Give every test fixture its own top-level class in a matching `.cs` file. Do not nest fixture classes inside another class or combine multiple fixture classes in one file.
 - Group related fixtures in a feature directory with a matching namespace, such as `Web/Tests/Onboarding/` and `e2e.Web.Tests.Onboarding`.
-- Put shared setup in a separate abstract base class and file within the feature directory. Keep feature-specific scenario helpers there too.
+- Inherit directly from the client `BaseTest`; do not introduce feature or scenario base classes. Keep fixture setup and assertion helpers in the concrete test class, and reusable UI interactions in page/component objects.
 - A parameterized fixture may declare multiple `[TestFixture(...)]` cases on its own class; it still belongs in one matching file.
 
 ## Shared setup
 
 - Put steps shared by every test in a fixture in `[SetUp]`: construct page objects, prepare the fixture's scenario, and perform shared navigation or login.
 - Keep `[SetUp]` straight-line. Do not put branching, loops, switches, ternaries, exception handling, assertions, or test-case selection logic in setup methods. Do not inspect test names, properties, or argument positions to decide what setup does.
-- Express scenario differences through explicit fixture parameters or separate fixtures. A shared base setup may call a scenario step overridden by each fixture. Keep case-specific preparation in the test's Arrange section when it is not shared by the fixture.
+- Express scenario differences through explicit fixture parameters or separate fixtures. Keep case-specific preparation in the test's Arrange section when it is not shared by the fixture.
 - Do not hide test-case dispatch in a helper called by setup. Reusable infrastructure operations may handle their own resource management and error recovery.
 - Use `[TearDown]` for per-test resources; never share mutable page objects or scenario state between test instances.
 
