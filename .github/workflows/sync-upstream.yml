@@ -36,7 +36,11 @@ jobs:
             fi
           fi
 
-          git restore --source=HEAD --staged --worktree -- e2e/
+          # git restore rejects unmerged paths absent from HEAD, e.g. upstream
+          # editing an e2e file a previous sync discarded.
+          git rm -r -q --cached --ignore-unmatch -- e2e/
+          rm -rf e2e
+          git checkout HEAD -- e2e/
 
           if [ -n "$(git ls-files --unmerged)" ]; then
             echo "Upstream merge has conflicts outside e2e/."
