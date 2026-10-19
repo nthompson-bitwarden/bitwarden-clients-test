@@ -27,5 +27,22 @@ jobs:
             https://github.com/bitwarden/clients.git
 
           git fetch upstream main
-          git merge upstream/main --no-edit
+          # Pause before committing so upstream cannot change our e2e directory.
+          if ! git merge upstream/main --no-commit --no-ff; then
+            # Only merge conflicts can be resolved by restoring excluded paths.
+            if [ -z "$(git ls-files --unmerged)" ]; then
+              exit 1
+            fi
+          fi
+
+          git restore --source=HEAD --staged --worktree -- e2e/
+
+          if [ -n "$(git ls-files --unmerged)" ]; then
+            echo "Upstream merge has conflicts outside e2e/."
+            exit 1
+          fi
+
+          if git rev-parse --verify -q MERGE_HEAD > /dev/null; then
+            git commit --no-edit
+          fi
           git push origin HEAD:main

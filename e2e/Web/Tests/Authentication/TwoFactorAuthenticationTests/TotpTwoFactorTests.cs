@@ -1,14 +1,45 @@
+using System.Text.RegularExpressions;
 using NUnit.Framework;
+using e2e.Authentication;
+using e2e.Web.Pages;
+using static Dramaturge.Assertions;
 
 namespace e2e.Web.Tests.Authentication;
 
-public sealed class TotpTwoFactorTests : TwoFactorAuthenticationTests
+public sealed class TotpTwoFactorTests : BaseTest
 {
+    private TwoFactorEnrollment Enrollment = null!;
+    private LoginPage LoginPage = null!;
+    private TwoFactorPage TwoFactorPage = null!;
+    private VaultPage VaultPage = null!;
+
     [SetUp]
     public async Task EnrollTotpAsync()
     {
-        await Enrollment.EnrollTotpAsync();
+        LoginPage = new LoginPage(Page);
+        TwoFactorPage = new TwoFactorPage(Page);
+        VaultPage = new VaultPage(Page);
+        Enrollment = new TwoFactorEnrollment(ServerUrl, Seeds);
+        await Enrollment.AuthenticateAsync();
+        await EnrollTotpWithCleanupAsync();
     }
+
+    private async Task EnrollTotpWithCleanupAsync()
+    {
+        try
+        {
+            await Enrollment.EnrollTotpAsync();
+        }
+        catch
+        {
+            // NUnit skips this fixture's teardown when its setup fails.
+            Enrollment.Dispose();
+            throw;
+        }
+    }
+
+    [TearDown]
+    public void DisposeEnrollment() => Enrollment?.Dispose();
 
     [Test]
     public async Task LogIn_WithAuthenticatorCode_IsSuccessful()
@@ -21,7 +52,10 @@ public sealed class TotpTwoFactorTests : TwoFactorAuthenticationTests
         await twoFactorPage.SubmitCodeAsync(Enrollment.LoginTotpCode());
 
         //Assert
-        await AssertVaultIsUnlockedAsync();
+        await Expect(Page).ToHaveUrlAsync(new Regex(@"/#/vault(?:[/?]|$)"));
+        await Expect(VaultPage.ItemsTable).ToBeVisibleAsync();
+        await Expect(Page.GetByText("E2E login", exact: true)).ToBeVisibleAsync();
+        await Expect(VaultPage.MasterPassword).Not.ToBeVisibleAsync();
     }
 
     [Test]
@@ -35,6 +69,10 @@ public sealed class TotpTwoFactorTests : TwoFactorAuthenticationTests
         await TwoFactorPage.SubmitCodeAsync(invalidCode);
 
         //Assert
-        await AssertCodeWasRejectedAsync();
+        await Expect(TwoFactorPage.InvalidCode).ToBeVisibleAsync();
+        await Expect(TwoFactorPage.VerificationCode).ToBeVisibleAsync();
+        await Expect(TwoFactorPage.ContinueButton).ToBeEnabledAsync();
+        await Expect(VaultPage.ItemsTable).Not.ToBeVisibleAsync();
+        await Expect(Page).ToHaveUrlAsync(new Regex(@"/#/2fa(?:[/?]|$)"));
     }
 }

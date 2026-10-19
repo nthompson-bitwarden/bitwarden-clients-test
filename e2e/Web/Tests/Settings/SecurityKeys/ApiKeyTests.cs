@@ -1,11 +1,36 @@
+using e2e.Web.Components;
+using e2e.Web.Pages;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using static Dramaturge.Assertions;
 
 namespace e2e.Web.Tests.Settings.SecurityKeys;
 
-public class ApiKeyTests : SecurityKeysTestsBase
+public class ApiKeyTests : BaseTest
 {
+    private SecurityKeysPage SecurityKeysPage { get; set; } = null!;
+    private ApiKeyDialog ApiKeyDialogComponent { get; set; } = null!;
+
+    public ApiKeyTests()
+    {
+        // These journeys reveal credentials and decrypted vault data, including on failure paths.
+        ScreenshotOnFailure = false;
+        VideoOnFailure = false;
+        TraceOnFailure = false;
+    }
+
+    [SetUp]
+    public async Task OpenSecurityKeysAsync()
+    {
+        SecurityKeysPage = new SecurityKeysPage(Page);
+        ApiKeyDialogComponent = new ApiKeyDialog(Page);
+        var loginPage = new LoginPage(Page);
+        var vaultPage = new VaultPage(Page);
+        await loginPage.LoginFormComponent.SubmitAsync(Account.Email, Account.Password);
+        await vaultPage.ItemsTable.WaitForAsync();
+        await SecurityKeysPage.OpenAsync();
+    }
+
     [Test]
     public async Task ViewApiKey_AfterVerification_ShowsStableAccountCredentials()
     {
