@@ -28,7 +28,7 @@ jobs:
             https://github.com/bitwarden/clients.git
 
           git fetch upstream main
-          # Pause before committing so upstream cannot change our e2e directory.
+          # Pause before committing so upstream cannot change our excluded paths.
           if ! git merge upstream/main --no-commit --no-ff; then
             # Only merge conflicts can be resolved by restoring excluded paths.
             if [ -z "$(git ls-files --unmerged)" ]; then
@@ -37,13 +37,14 @@ jobs:
           fi
 
           # git restore rejects unmerged paths absent from HEAD, e.g. upstream
-          # editing an e2e file a previous sync discarded.
-          git rm -r -q --cached --ignore-unmatch -- e2e/
-          rm -rf e2e
-          git checkout HEAD -- e2e/
+          # editing a workflow or e2e file a previous sync discarded.
+          excluded=(e2e/ .github/workflows/)
+          git rm -r -q --cached --ignore-unmatch -- "${excluded[@]}"
+          rm -rf "${excluded[@]}"
+          git checkout HEAD -- "${excluded[@]}"
 
           if [ -n "$(git ls-files --unmerged)" ]; then
-            echo "Upstream merge has conflicts outside e2e/."
+            echo "Upstream merge has conflicts outside excluded paths."
             exit 1
           fi
 
